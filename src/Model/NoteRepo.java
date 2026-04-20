@@ -32,6 +32,7 @@ public class NoteRepo {
         s.setInt(2, thisNoteId);
         s.setString(3, newTitle);
         s.setString(4, newContents);
+        s.execute();
         boolean noSuchUser = s.getBoolean(5);
         boolean noSuchNote = s.getBoolean(6);
         return success = (!noSuchUser && !noSuchNote);
@@ -43,6 +44,7 @@ public class NoteRepo {
         s.setInt(1, thisUserId);
         s.setInt(2, thisNoteId);
         s.setBoolean(3, deleteAll);
+        s.execute();
         boolean noSuchUser = s.getBoolean(4);
         boolean noSuchNote = s.getBoolean(5);
         return success = (!noSuchUser && !noSuchNote);

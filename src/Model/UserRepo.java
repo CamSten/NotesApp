@@ -1,9 +1,6 @@
 package Model;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,22 +13,35 @@ public class UserRepo {
         this.c = c;
     }
 
-    private boolean validateLogin(String username){
-        boolean existingName = false;
-        boolean validPassword = false;
-
-        return (existingName && validPassword);
-
-    }
-    private boolean validateNewUser(String username){
-        boolean availableName = false;
-        boolean validName = false;
-        boolean validPassword = false;
-
-        return (availableName && validName && validPassword);
+    public String getPasswordHash(String username) throws SQLException {
+        PreparedStatement s = c.prepareStatement("SELECT * FROM AppUser where username = ?");
+        s.setString(1, username);
+        String passwordHash = "";
+        ResultSet rs = null;
+        while (rs.next()){
+           passwordHash = rs.getString("passwordHash");
+        }
+        return passwordHash;
     }
 
-    private List<User> getUsers() throws SQLException {
+    public boolean checkNameAvailability(String requestedName) throws SQLException {
+        PreparedStatement s = c.prepareStatement("SELECT * FROM AppUser where username = ?");
+        s.setString(1, requestedName);
+        List<String> results = new ArrayList<>();
+        ResultSet rs = null;
+        while (rs.next()){
+            results.add(rs.getString("username"));
+        }
+        return (results.isEmpty());
+    }
+
+    public boolean addNewUser(String username, String passwordHash) throws SQLException {
+        CallableStatement s = c.prepareCall("CALL (?, ?)");
+        s.setString(1, "username");
+        s.setString(2, "passwordHash");
+        return s.execute();
+    }
+    public List<User> getUsers() throws SQLException {
         List<User> allUsers = new ArrayList<>();
         ResultSet rs = null;
         PreparedStatement s = c.prepareStatement("SELECT * FROM AppUser");
