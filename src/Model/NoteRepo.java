@@ -11,22 +11,29 @@ public class NoteRepo {
     public NoteRepo(Connection c){
         this.c = c;
     }
-    private List<Note> getNotes(int thisUserId) throws SQLException {
-        ResultSet rs = null;
+
+    public boolean addNote(int userId, String title, String contents) throws SQLException {
+        CallableStatement s = c.prepareCall("CALL addNote(?, ?, ?)");
+        s.setInt(1, userId);
+        s.setString(2, title);
+        s.setString(3, contents);
+        return s.execute();
+    }
+    public List<Note> getNotes(int thisUserId) throws SQLException {
         List<Note> notes = new ArrayList<>();
-        PreparedStatement s = c.prepareStatement("SELECT * FROM Note WHERE userId = id = ");
+        PreparedStatement s = c.prepareStatement("SELECT * FROM Note WHERE userId = ? ");
         s.setInt(1, thisUserId);
-        rs = s.executeQuery();
+        ResultSet rs = s.executeQuery();
         while (rs.next()) {
+            int id = rs.getInt("id");
             String title = rs.getString("title");
             String contents = rs.getString("contents");
-            LocalDateTime date = rs.getTimestamp("date").toLocalDateTime();
-            notes.add(new Note(title, contents, date));
+            LocalDateTime date = rs.getTimestamp("submitDate").toLocalDateTime();
+            notes.add(new Note(id, title, contents, date));
         }
         return notes;
     }
-    private boolean editNote(int thisUserId, int thisNoteId, String newTitle, String newContents) throws SQLException {
-        boolean success = false;
+    public boolean editNote(int thisUserId, int thisNoteId, String newTitle, String newContents) throws SQLException {
         CallableStatement s = c.prepareCall("CALL editNote(?, ?, ?, ?, ?, ?)");
         s.setInt(1, thisUserId);
         s.setInt(2, thisNoteId);
@@ -35,24 +42,18 @@ public class NoteRepo {
         s.execute();
         boolean noSuchUser = s.getBoolean(5);
         boolean noSuchNote = s.getBoolean(6);
-        return success = (!noSuchUser && !noSuchNote);
+        return (!noSuchUser && !noSuchNote);
     }
-
-    private boolean deleteNotes(int thisUserId, int thisNoteId, boolean deleteAll) throws SQLException {
-        boolean success = false;
-        CallableStatement s = c.prepareCall("CALL deleteNoteForUser(?, ?, ?, ?, ?)");
+    public boolean deleteNotes(int thisUserId, int thisNoteId, boolean deleteAll) throws SQLException {
+        CallableStatement s = c.prepareCall("CALL deleteNotesForUser(?, ?, ?)");
         s.setInt(1, thisUserId);
         s.setInt(2, thisNoteId);
         s.setBoolean(3, deleteAll);
-        s.execute();
-        boolean noSuchUser = s.getBoolean(4);
-        boolean noSuchNote = s.getBoolean(5);
-        return success = (!noSuchUser && !noSuchNote);
+        int affectedRows = s.executeUpdate();
+        return affectedRows >0;
     }
 
-    private boolean deleteAllNotes(int userId) throws SQLException {
-        // move admin validation to Java?
-
+    public boolean deleteAllNotes(int userId) throws SQLException {
         CallableStatement s = c.prepareCall("CALL deleteNoteForUser(?, ?)");
         s.setInt(1, userId);
         return s.getBoolean(2);

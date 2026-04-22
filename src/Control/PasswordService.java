@@ -6,7 +6,6 @@ public class PasswordService {
 
     public String hashPassword(String userInput){
        return BCrypt.withDefaults().hashToString(12, userInput.toCharArray());
-        // --> send on to DatabaseRelay--> store in Database
     }
     public boolean validatePassword(String userInput, String storedHash){
         BCrypt.Result result = BCrypt.verifyer().verify(userInput.toCharArray(), storedHash);
