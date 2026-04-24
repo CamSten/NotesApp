@@ -17,7 +17,8 @@ public class NoteRepo {
         s.setInt(1, userId);
         s.setString(2, title);
         s.setString(3, contents);
-        return s.execute();
+        int affectedRows = s.executeUpdate();
+        return affectedRows > 0;
     }
     public List<Note> getNotes(int thisUserId, boolean allNotes) throws SQLException {
         List<Note> notes = new ArrayList<>();
@@ -33,8 +34,8 @@ public class NoteRepo {
             String name = rs.getString("username");
             String title = rs.getString("title");
             String contents = rs.getString("contents");
-            LocalDateTime submitDate = rs.getTimestamp("submitDate").toLocalDateTime();
-            LocalDateTime editDate = rs.getTimestamp("lastEditDate").toLocalDateTime();
+            LocalDateTime submitDate = rs.getTimestamp("entryDate").toLocalDateTime();
+            LocalDateTime editDate = rs.getTimestamp("editDate").toLocalDateTime();
             Note note = new Note(id, title, contents, submitDate);
             note.setUsername(name);
             note.setLastEditDate(editDate);
@@ -44,28 +45,27 @@ public class NoteRepo {
     }
 
     public boolean editNote(int thisUserId, int thisNoteId, String newTitle, String newContents) throws SQLException {
-        CallableStatement s = c.prepareCall("CALL editNote(?, ?, ?, ?, ?, ?)");
+        CallableStatement s = c.prepareCall("CALL editNote(?, ?, ?, ?)");
         s.setInt(1, thisUserId);
         s.setInt(2, thisNoteId);
         s.setString(3, newTitle);
         s.setString(4, newContents);
-        s.execute();
-        boolean noSuchUser = s.getBoolean(5);
-        boolean noSuchNote = s.getBoolean(6);
-        return (!noSuchUser && !noSuchNote);
+        return s.execute();
     }
     public boolean deleteNotes(int thisUserId, int thisNoteId, boolean deleteAll) throws SQLException {
+        System.out.println("deleteNotesForUser is called in NoteRepo. userId/noteId/deleteAll is: " + thisUserId + "/" + thisNoteId + "/" + deleteAll);
         CallableStatement s = c.prepareCall("CALL deleteNotesForUser(?, ?, ?)");
         s.setInt(1, thisUserId);
         s.setInt(2, thisNoteId);
         s.setBoolean(3, deleteAll);
         int affectedRows = s.executeUpdate();
-        return affectedRows >0;
+        System.out.println("result: " + affectedRows);
+        return affectedRows > 0;
     }
 
-    public boolean deleteAllNotes(int userId) throws SQLException {
-        CallableStatement s = c.prepareCall("CALL deleteNoteForUser(?, ?)");
-        s.setInt(1, userId);
-        return s.getBoolean(2);
+    public boolean deleteAllNotes() throws SQLException {
+        CallableStatement s = c.prepareCall("CALL deleteAllNotes");
+        int affectedRows = s.executeUpdate();
+        return affectedRows > 0;
     }
 }

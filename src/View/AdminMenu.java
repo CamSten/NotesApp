@@ -5,9 +5,7 @@ import Control.Event;
 import Control.Prompts;
 import Model.Note;
 import Model.User;
-
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,13 +13,11 @@ public class AdminMenu {
     AppManager appManager;
     Scanner scan;
     Feedback f;
-
-
     public enum AdminAction {SEE_USERS, SEE_NOTES, SEE_ALL_NOTES, DELETE_NOTE, DELETE_USER_NOTES, DELETE_ALL_NOTES}
 
-    public AdminMenu(AppManager appManager) {
+    public AdminMenu(AppManager appManager, Scanner scan) {
         this.appManager = appManager;
-        this.scan = new Scanner(System.in);
+        this.scan = scan;
         this.f = new Feedback(scan);
     }
 
@@ -32,7 +28,7 @@ public class AdminMenu {
             String choice = f.input();
             switch (choice) {
                 case "1" -> seeNotes();
-                case "2" -> displayUsers(appManager.handleAdminAction(AdminAction.SEE_USERS, Collections.emptyList()));
+                case "2" -> displayUsers(appManager.handleAdminAction(AdminAction.SEE_USERS, -1));
                 case "3" -> {
                     appManager.handleLogOut();
                     loggedIn = false;
@@ -47,20 +43,18 @@ public class AdminMenu {
         Event event = null;
         boolean allNotes = true;
         while (!complete) {
-            System.out.println(noteMenuPrompt);
-            System.out.println(returnToMain);
+            System.out.println(noteMenuPrompt + returnToMain);
             String choice = f.input();
-            System.out.println("choice in seeNotes is: " + choice);
             switch (choice) {
                 case "x" ->{
                     complete = true;
                     continue;
                 }
-                case "1" -> event = appManager.handleAdminAction(AdminAction.SEE_ALL_NOTES, Collections.emptyList());
+                case "1" -> event = appManager.handleAdminAction(AdminAction.SEE_ALL_NOTES, -1);
                 case "2" -> {
                     System.out.println(userNamePrompt);
                     allNotes = false;
-                    event = appManager.handleAdminAction(AdminAction.SEE_NOTES, List.of(f.input()));
+                    event = appManager.handleAdminAction(AdminAction.SEE_NOTES, parseInput(f.input()));
                 }
                 default -> f.promptInvalid();
             }
@@ -75,109 +69,103 @@ public class AdminMenu {
         }
     }
 
-    public void displayUsers(Event event) throws SQLException {
-        boolean complete = false;
-        while (!complete) {
-            if (event.getData() instanceof List list) {
-                if (!list.isEmpty() && list.getFirst() instanceof User) {
-                    List<User> users = (List<User>) event.getData();
-                    System.out.println(usersInfo);
-                    for (User u : users) {
-                        System.out.println("User nr." + u.getId() + ":\nUsername: " + u.getUsername() + "\nDate of registration: " + u.getRegDate()+"\n");
-                    }
-                    System.out.println(userNumberPrompt + returnToMain);
-                    String choice = f.input();
-                    try {
-                        Integer.parseInt(choice);
-                        displayNotes(appManager.handleAdminAction(AdminAction.SEE_NOTES, List.of(choice)), false);
-                        complete = true;
-                    } catch (NumberFormatException e) {
-                        complete = notParseable(choice);
-                    }
-                }
-                else {
-                    System.out.println(noUsers);
-                    complete = true;
-                }
-            }
+    public Prompts displayUsers(Event event) throws SQLException {
+        List<User> users = f.getUsers(event);
+        if (users.isEmpty()){
+            System.out.println(noUsers);
+            return Prompts.OK;
         }
-    }
-    private boolean notParseable(String choice){
-        boolean complete = false;
-        if (f.checkIfQuit(choice)) {
-            complete = true;
-        } else {
+        while (true) {
+            System.out.println(usersInfo);
+            for (User u : users) {
+                System.out.println(getUserString(u, false));
+            }
+            System.out.println(userNumberPrompt + returnToMain);
+            String choice = f.input();
+            if (f.checkIfQuit(choice)) {
+                return Prompts.OK;
+            }
+            int userIdInput = parseInput(choice);
+            if (validUserSelection(userIdInput, users)) {
+                displayNotes(appManager.handleAdminAction(AdminAction.SEE_NOTES, userIdInput), false);
+                return Prompts.OK;
+            }
             f.promptInvalid();
         }
-        return complete;
     }
-    private void displayNotes(Event event, boolean allNotes){
-        boolean complete = false;
-        if (event.getData() instanceof List list && list.isEmpty()){
+    private boolean validUserSelection(int userIdInput, List<User> users){
+        return users.stream().anyMatch(user -> user.getId() == userIdInput);
+    }
+    private int parseInput(String input){
+        try {
+            return Integer.parseInt(input);
         }
-        while (!complete) {
-            if (event.getData() instanceof List list) {
-                if (list.isEmpty()) {
-                    System.out.println(noNotes);
-                    complete = true;
-                } else if (list.getFirst() instanceof Note) {
-                    List<Note> notes = (List<Note>) event.getData();
-                    String prompt = notesIntroUser + " " + notes.getFirst().getUsername();
-                    if (allNotes) {
-                        prompt = notesIntroAll;
-                    }
-                    System.out.println(prompt);
-                    int index = 1;
-                    for (Note n : notes) {
-                        System.out.println(getNotePostString(n, index, allNotes, false));
-                        index += 1;
-                    }
-                    System.out.println(notesPrompt + returnToMain + submit);
-                    String choice = f.input();
-                    complete = displayNotesSubmenu(choice, notes);
+        catch (NumberFormatException e){
+            return -1;
+        }
+    }
+    private void displayNotes(Event event, boolean allNotes) throws SQLException {
+        boolean complete = false;
+        List<Note> notes = f.getNotes(event);
+        if (!notes.isEmpty()) {
+            while (!complete) {
+                String prompt = allNotes ? notesIntroUser + " " + notes.getFirst().getUsername() : notesIntroAll;
+                System.out.println(prompt);
+                int index = 1;
+                for (Note n : notes) {
+                    System.out.println(getNotePostString(n, index, allNotes, false));
+                    index += 1;
+                }
+                System.out.println(notesPrompt + returnToMain + submit);
+                String input = f.input();
+                complete = f.checkIfQuit(input);
+                if(complete){
+                    displayNotesSubmenu(input, notes);
                 }
             }
-            else {
-                System.out.println(event.getPrompts());
-                complete = true;
-            }
         }
+        System.out.println(noNotes);
     }
-    private boolean displayNotesSubmenu(String choice, List<Note> notes) {
-        boolean completeSubmenu = false;
-        boolean complete = false;
-        System.out.println("choice in displayNotesSubmenu is: " + choice);
-        if(f.checkIfQuit(choice)){
-            completeSubmenu = true;
-            complete = true;
+    private Prompts displayNotesSubmenu(String choice, List<Note> notes) throws SQLException {
+        int noteIndex = parseInput(choice);
+        Prompts result = Prompts.OK;
+        if (!f.checkIfQuit(choice)) {
+            return Prompts.OK;
         }
-        while (!completeSubmenu) {
-            try {
-                int userIndex = Integer.parseInt(choice);
-                Note thisNote = notes.get(userIndex - 1);
+        while (true) {
+            if (noteIndex >-1) {
+                Note thisNote = notes.get(noteIndex - 1);
                 System.out.println(getNotePostString(thisNote, -1, true, true));
                 System.out.println(deletePrompt + returnToMain);
                 String subChoice = f.input();
-                System.out.println("subChoice is: " + subChoice);
                 if (subChoice.equals("1")) {
-                    Event response = appManager.handleAdminAction(AdminAction.DELETE_NOTE, List.of(String.valueOf(thisNote.getId()), thisNote.getUsername()));
+                    Event response = appManager.handleAdminAction(AdminAction.DELETE_NOTE, thisNote.getId());
                     System.out.println(response.getPrompts());
-                    complete = true;
-                    completeSubmenu = true;
+                    return response.getPrompts();
+                } else if (f.checkIfQuit(subChoice)) {
+                    return result;
                 }
-                else if (subChoice.equals("x")){
-                    complete = true;
-                    completeSubmenu = true;
-                }
-            } catch (NumberFormatException | SQLException e) {
-                complete = notParseable(choice);
             }
+            f.promptInvalid();
         }
-        return complete;
     }
     public String promptVerify() {
         System.out.println(passwordPrompt);
         return scan.nextLine().trim();
+    }
+
+    private String getUserString(User u, boolean allInfo){
+        StringBuilder post = new StringBuilder();
+        if (!allInfo){
+            post.append("User nr.");
+            post.append(u.getId());
+            post.append(":\nUsername: ");
+            post.append(u.getUsername());
+            post.append("\nDate of registration: ");
+            post.append(u.getRegDate());
+            post.append("\n");
+        }
+        return post.toString();
     }
     private String getNotePostString(Note n, int index, boolean allNotes, boolean allInfo) {
         StringBuilder post = new StringBuilder();
@@ -191,7 +179,7 @@ public class AdminMenu {
             post.append(n.getUsername());
         }
         post.append("\nDate: ");
-        post.append(n.getDate());
+        post.append(n.getSubmitDate());
         if (allInfo) {
             post.append("\nTitle: ");
             post.append(n.getTitle());
@@ -201,7 +189,6 @@ public class AdminMenu {
         }
         return post.toString();
     }
-
 
     public void forcedLogout() throws SQLException {
         System.out.println(threeFailedAttempts);

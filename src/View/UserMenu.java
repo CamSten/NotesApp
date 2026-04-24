@@ -14,9 +14,9 @@ public class UserMenu {
     Scanner scan;
     String username;
 
-    public UserMenu(AppManager appManager) {
+    public UserMenu(AppManager appManager, Scanner scan) {
         this.appManager = appManager;
-        this.scan = new Scanner(System.in);
+        this.scan = scan;
         this.f = new Feedback(scan);
     }
 
@@ -56,7 +56,7 @@ public class UserMenu {
             System.out.println(notesmenu);
             System.out.println(notesMenuPrompt);
             for (Note n : notes) {
-                System.out.println("Note nr. " + index + "  " + n.getDate() + "\n" + n.getTitle() + "\n" + n.getContents());
+                System.out.println("Note nr. " + index + "  " + n.getSubmitDate() + "\n" + n.getTitle() + "\n" + n.getContents());
                 index += 1;
             }
             System.out.println(notesMenuPrompt);
@@ -75,7 +75,7 @@ public class UserMenu {
             if (index - 1 < notes.size()) {
                 Note n = notes.get(index - 1);
                 System.out.println(notePrompt);
-                System.out.println("Note nr. " + index + "  " + n.getDate() + "\n" + n.getTitle() + "\n" + n.getContents());
+                System.out.println("Note nr. " + index + "  " + n.getSubmitDate() + "\n" + n.getTitle() + "\n" + n.getContents());
                 String choice = f.input();
                 switch (choice) {
                     case "1" -> editNote(n);
@@ -145,7 +145,7 @@ public class UserMenu {
         }
         n.setTitle(title);
         n.setContents(text);
-        System.out.println("Your note has been updated: \n" + n.getDate() + "\n" + n.getTitle() + "\n" + n.getContents());
+        System.out.println("Your note has been updated: \n" + n.getSubmitDate() + "\n" + n.getTitle() + "\n" + n.getContents());
         appManager.handleNoteAction(NoteAction.EDIT, n);
         returnToMain();
     }

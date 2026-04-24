@@ -105,10 +105,7 @@ public class LoginMenu {
     }
 
     private Prompts validate(String name, String password, boolean newUser) throws SQLException {
-        if (newUser){
-            return appManager.validateNewUser(name, password);
-        }
-        return appManager.validateLogin(name, password);
+        return appManager.validate(name, password, newUser);
     }
     public void setUser(User user) {
         this.user = user;

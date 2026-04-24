@@ -1,5 +1,7 @@
 package Model;
 
+import Control.AppManager;
+
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,10 +16,10 @@ public class UserRepo {
         this.c = c;
     }
 
-    public boolean logLoginAttempt(int userId, boolean success) throws SQLException {
+    public boolean logLoginAttempt(int userId, AppManager.LoginStatus status) throws SQLException {
         CallableStatement s = c.prepareCall("CALL logLoginAttempt(?, ?)");
         s.setInt(1, userId);
-        s.setBoolean(2, success);
+        s.setString(2, String.valueOf(status));
         return s.execute();
     }
     public String getPasswordHash(String username) throws SQLException {
@@ -65,14 +67,14 @@ public class UserRepo {
         s.setInt(1, userId);
         s.execute();
         boolean result = s.getBoolean(2);
+        System.out.println("in USER REPO, result for isAdmin is: " + result + " for userId: "+ userId );
         return result;
     }
     public boolean addNewUser(String username, String passwordHash) throws SQLException {
-        CallableStatement s = c.prepareCall("CALL newAppUserValidation (?, ?, ?)");
+        CallableStatement s = c.prepareCall("CALL newAppUserValidation (?, ?)");
         s.setString(1, username);
         s.setString(2, passwordHash);
-        s.execute();
-        return s.getBoolean(3);
+        return s.execute();
     }
 
     public boolean saveNewPassword(String username, String newPasswordHash) throws SQLException {
@@ -90,7 +92,7 @@ public class UserRepo {
             String userName = rs.getString("username");
             int userId = rs.getInt("id");
             String role = rs.getString("role");
-            LocalDateTime regDate = rs.getTimestamp("date").toLocalDateTime();
+            LocalDateTime regDate = rs.getTimestamp("regDate").toLocalDateTime();
             User.Role userRole = USER;
             if (role.equals("admin")){
                 userRole = User.Role.ADMIN;

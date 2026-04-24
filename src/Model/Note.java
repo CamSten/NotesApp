@@ -8,14 +8,15 @@ public class Note {
     private String username;
     private String title;
     private String contents;
-    private LocalDateTime date;
+    private LocalDateTime submitDate;
+    private LocalDateTime lastEditDate;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 
     public Note(int id, String title, String contents, LocalDateTime date) {
         this.id = id;
         this.title = title;
         this.contents = contents;
-        this.date = date;
+        this.submitDate = date;
     }
 
     public int getId() {
@@ -38,8 +39,16 @@ public class Note {
         this.contents = contents;
     }
 
-    public String getDate() {
-        return formatter.format(date);
+    public String getSubmitDate() {
+        return formatter.format(submitDate);
+    }
+
+    public String getLastEditDate() {
+        return formatter.format(lastEditDate);
+    }
+
+    public void setLastEditDate(LocalDateTime lastEditDate) {
+        this.lastEditDate = lastEditDate;
     }
 
     public String getUsername() {
@@ -49,4 +58,5 @@ public class Note {
     public void setUsername(String username) {
         this.username = username;
     }
+
 }

@@ -1,6 +1,13 @@
 package View;
 
+import Control.Event;
 import Control.Prompts;
+import Model.Note;
+import Model.User;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 
 public class Feedback {
@@ -35,6 +42,19 @@ public class Feedback {
             System.out.println(prompt);
             return checkConfirm(scan.nextLine(), prompt);
         }
+    }
+
+    public List<Note> getNotes(Event event) {
+        if (event.getData() instanceof List list && !list.isEmpty() && list.getFirst() instanceof Note) {
+           return  (List<Note>) event.getData();
+        }
+        return Collections.emptyList();
+    }
+    public List<User> getUsers(Event event){
+        if (event.getData() instanceof List list && !list.isEmpty() && list.getFirst() instanceof User) {
+            return  (List<User>) event.getData();
+        }
+        return Collections.emptyList();
     }
     private final String invalidChoice = "You haven't submitted av valid choice. Please try again.\n";
 }

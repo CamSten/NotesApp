@@ -1,8 +1,26 @@
 package Control;
 
-public class InputValidator {
-    public enum InputType {USERNAME, PASSWORD, NOTE_TITLE, NOTE_TEXT};
+import java.util.ArrayList;
+import java.util.List;
 
+public class InputValidator {
+    public enum InputType {USERNAME, PASSWORD, NOTE, NOTE_TITLE, NOTE_TEXT}
+
+    public Prompts validate(InputType inputType, List<String> inputValues){
+        List<Prompts> results = new ArrayList<>();
+        Prompts result = Prompts.OK;
+        switch (inputType) {
+            case PASSWORD, USERNAME -> results = List.of(
+                    checkTooShort(inputValues.getFirst(), inputType),
+                    checkTooLong(inputValues.getFirst(), inputType));
+            case NOTE -> results = List.of(
+                    checkTooLong(inputValues.getFirst(), InputType.NOTE_TITLE),
+                    checkTooShort(inputValues.getFirst(), InputType.NOTE_TITLE),
+                    checkTooLong(inputValues.getLast(), InputType.NOTE_TEXT),
+                    checkTooShort(inputValues.getLast(), InputType.NOTE_TEXT));
+        }
+        return results.stream().filter(p -> p != result).findFirst().orElse(result);
+    }
     public Prompts lengthValidation(String username, String password){
         if (checkTooLong(username, InputType.USERNAME) != Prompts.OK) {
             return Prompts.LONG_NAME;
