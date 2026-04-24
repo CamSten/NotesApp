@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Note {
     private int id;
+    private String username;
     private String title;
     private String contents;
     private LocalDateTime date;
@@ -39,5 +40,13 @@ public class Note {
 
     public String getDate() {
         return formatter.format(date);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

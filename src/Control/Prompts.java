@@ -11,11 +11,10 @@ public enum Prompts {
     LONG_TEXT ("The text you've submitted is too long, please try again."),
     NAME_TAKEN ("The user name is already taken. Please try a different name."),
     NO_SUCH_USER ("The user name has not been found. Please try a different name."),
+    NO_SUCH_NOTE("The note has not been found"),
     WRONG_PASS ("The password you have submitted is incorrect."),
     NEW_PASS_OK("Your new password has been saved."),
-    LOGIN_OK("Login successful."),
-    NOTE_OK("Note ok"),
-    LENGTH_OK("Length ok"),
+    OK("Ok"),
     ERROR("ERROR, something went wrong."),
     AWAIT_DATA("Data retrieval has been initiated.");
 

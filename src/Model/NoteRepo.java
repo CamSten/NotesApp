@@ -19,20 +19,30 @@ public class NoteRepo {
         s.setString(3, contents);
         return s.execute();
     }
-    public List<Note> getNotes(int thisUserId) throws SQLException {
+    public List<Note> getNotes(int thisUserId, boolean allNotes) throws SQLException {
         List<Note> notes = new ArrayList<>();
-        PreparedStatement s = c.prepareStatement("SELECT * FROM Note WHERE userId = ? ");
-        s.setInt(1, thisUserId);
-        ResultSet rs = s.executeQuery();
+        PreparedStatement  s = c.prepareStatement("SELECT * from notes_view");
+
+        if (!allNotes){
+            s = c.prepareStatement("SELECT * from notes_view where userId = ?");
+            s.setInt(1, thisUserId);
+        }
+        ResultSet rs =  s.executeQuery();
         while (rs.next()) {
-            int id = rs.getInt("id");
+            int id = rs.getInt("noteId");
+            String name = rs.getString("username");
             String title = rs.getString("title");
             String contents = rs.getString("contents");
-            LocalDateTime date = rs.getTimestamp("submitDate").toLocalDateTime();
-            notes.add(new Note(id, title, contents, date));
+            LocalDateTime submitDate = rs.getTimestamp("submitDate").toLocalDateTime();
+            LocalDateTime editDate = rs.getTimestamp("lastEditDate").toLocalDateTime();
+            Note note = new Note(id, title, contents, submitDate);
+            note.setUsername(name);
+            note.setLastEditDate(editDate);
+            notes.add(note);
         }
         return notes;
     }
+
     public boolean editNote(int thisUserId, int thisNoteId, String newTitle, String newContents) throws SQLException {
         CallableStatement s = c.prepareCall("CALL editNote(?, ?, ?, ?, ?, ?)");
         s.setInt(1, thisUserId);

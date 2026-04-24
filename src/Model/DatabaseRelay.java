@@ -15,14 +15,26 @@ public class DatabaseRelay {
         this.userRepo = new UserRepo(c);
         this.noteRepo = new NoteRepo(c);
     }
+    public List<User> getUsers() throws SQLException {
+        System.out.println("---get users is called in DB R");
+        return userRepo.getUsers();
+    }
     public String getPasswordHash(String username) throws SQLException {
         return userRepo.getPasswordHash(username);
     }
     public boolean checkAvailability(String requestedName) throws SQLException {
         return userRepo.checkNameAvailability(requestedName);
     }
+
+    public boolean logLoginAttempt(String username, Boolean success) throws SQLException {
+        int id = userRepo.getUserIdForAdminUse(username);
+        return userRepo.logLoginAttempt(id, success);
+    }
     public int getUserId(String username, String passwordHash) throws SQLException {
         return userRepo.getUserId(username, passwordHash);
+    }
+    public int getUserIdForAdminUse(String username) throws SQLException {
+        return userRepo.getUserIdForAdminUse(username);
     }
     public boolean checkIfAdmin(int userid) throws SQLException {
         return userRepo.checkIfAdmin(userid);
@@ -36,13 +48,13 @@ public class DatabaseRelay {
     public void addNote(int userId, String title, String contents) throws SQLException {
         noteRepo.addNote(userId, title, contents);
     }
-    public List<Note> getNotes(int thisUserId) throws SQLException {
-        return noteRepo.getNotes(thisUserId);
+    public List<Note> getNotes(int thisUserId, boolean allNotes) throws SQLException {
+        return noteRepo.getNotes(thisUserId, allNotes);
     }
     public void editNote(int userId, Note n) throws SQLException {
         noteRepo.editNote(userId, n.getId(), n.getTitle(), n.getContents());
     }
-    public boolean removeNote(int userId, Note n, boolean allNotes) throws SQLException {
-        return noteRepo.deleteNotes(userId, n.getId(), allNotes);
+    public boolean removeNote(int userId, int noteId, boolean allNotes) throws SQLException {
+        return noteRepo.deleteNotes(userId, noteId, allNotes);
     }
 }

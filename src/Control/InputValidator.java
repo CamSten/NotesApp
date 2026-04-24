@@ -4,19 +4,19 @@ public class InputValidator {
     public enum InputType {USERNAME, PASSWORD, NOTE_TITLE, NOTE_TEXT};
 
     public Prompts lengthValidation(String username, String password){
-        if (checkTooLong(username, InputType.USERNAME) != Prompts.LENGTH_OK) {
+        if (checkTooLong(username, InputType.USERNAME) != Prompts.OK) {
             return Prompts.LONG_NAME;
         }
-        else if (checkTooShort(username, InputType.USERNAME) != Prompts.LENGTH_OK){
+        else if (checkTooShort(username, InputType.USERNAME) != Prompts.OK){
             return Prompts.SHORT_NAME;
         }
-        if (checkTooLong(password, InputType.PASSWORD) != Prompts.LENGTH_OK){
+        if (checkTooLong(password, InputType.PASSWORD) != Prompts.OK){
             return Prompts.LONG_PASS;
         }
-        else if (checkTooShort(password, InputType.PASSWORD) != Prompts.LENGTH_OK){
+        else if (checkTooShort(password, InputType.PASSWORD) != Prompts.OK){
             return Prompts.SHORT_PASS;
         }
-        return Prompts.LOGIN_OK;
+        return Prompts.OK;
     }
     public Prompts checkTooShort(String userinput, InputType inputType){
         switch (inputType){
@@ -44,7 +44,7 @@ public class InputValidator {
                 return Prompts.ERROR;
             }
         }
-        return Prompts.LENGTH_OK;
+        return Prompts.OK;
     }
     public Prompts checkTooLong(String userinput, InputType inputType){
         switch (inputType){
@@ -72,6 +72,6 @@ public class InputValidator {
                 return Prompts.ERROR;
             }
         }
-        return Prompts.LENGTH_OK;
+        return Prompts.OK;
     }
 }

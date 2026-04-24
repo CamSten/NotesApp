@@ -22,6 +22,9 @@ public class Feedback {
         return input.equalsIgnoreCase("x");
     }
 
+    public void promptInvalid(){
+        System.out.println(invalidChoice);
+    }
     public boolean checkConfirm(String input, String prompt) {
         if (input.equals("1")) {
             return true;
