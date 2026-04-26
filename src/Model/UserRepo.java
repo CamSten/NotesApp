@@ -1,6 +1,7 @@
 package Model;
 
 import Control.AppManager;
+import Control.LoginStatus;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ public class UserRepo {
         this.c = c;
     }
 
-    public boolean logLoginAttempt(int userId, AppManager.LoginStatus status) throws SQLException {
+    public boolean logLoginAttempt(int userId, LoginStatus status) throws SQLException {
         CallableStatement s = c.prepareCall("CALL logLoginAttempt(?, ?)");
         s.setInt(1, userId);
         s.setString(2, String.valueOf(status));

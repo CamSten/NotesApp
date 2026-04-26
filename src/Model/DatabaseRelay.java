@@ -1,6 +1,6 @@
 package Model;
 
-import Control.AppManager;
+import Control.LoginStatus;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,11 +11,13 @@ public class DatabaseRelay {
     private static Connection c;
     private UserRepo userRepo;
     private NoteRepo noteRepo;
+    private AdminRepo adminRepo;
 
     public DatabaseRelay() throws SQLException {
         this.c = DriverManager.getConnection(PropertyRetriever.getUrl(), PropertyRetriever.getUser(), PropertyRetriever.getPassword());
         this.userRepo = new UserRepo(c);
         this.noteRepo = new NoteRepo(c);
+        this.adminRepo = new AdminRepo(c);
     }
     public List<User> getUsers() throws SQLException {
         System.out.println("---get users is called in DB R");
@@ -28,7 +30,7 @@ public class DatabaseRelay {
         return userRepo.checkNameAvailability(requestedName);
     }
 
-    public boolean logLoginAttempt(String username, AppManager.LoginStatus status) throws SQLException {
+    public boolean logLoginAttempt(String username, LoginStatus status) throws SQLException {
         int id = userRepo.getUserIdForAdminUse(username);
         return userRepo.logLoginAttempt(id, status);
     }
@@ -63,5 +65,20 @@ public class DatabaseRelay {
     }
     public boolean removeAllNotes() throws SQLException {
         return noteRepo.deleteAllNotes();
+    }
+    public List<LogPost> getLogPosts() throws SQLException {
+        return adminRepo.getLoginData();
+    }
+    public List<LogPost> getLogPostForStatus(LoginStatus status) throws SQLException {
+        return adminRepo.getLoginDataForStatus(status);
+    }
+    public List<LogPost> getLogPostForUser(int userId) throws SQLException {
+        return adminRepo.getLoginDataForUser(userId);
+    }
+    public List<NoteLog> getAllNoteLogs() throws SQLException {
+        return adminRepo.getNotesLog();
+    }
+    public List<NoteLog> getNoteLogsForActor(int userId) throws SQLException {
+        return adminRepo.getNotesLogForActor(userId);
     }
 }

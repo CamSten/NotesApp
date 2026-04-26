@@ -1,8 +1,6 @@
 package Control;
 
-import Model.DatabaseRelay;
-import Model.Note;
-import Model.User;
+import Model.*;
 import View.AdminMenu;
 import View.LoginMenu;
 import View.UserMenu;
@@ -20,7 +18,6 @@ public class AppManager {
     private final DatabaseRelay databaseRelay = new DatabaseRelay();
     private final InputValidator iv;
     private User user;
-    public enum LoginStatus {SUCCESS, FAIL, UNKNOWN_USER}
 
     public AppManager() throws SQLException {
         this.iv = new InputValidator();
@@ -38,32 +35,33 @@ public class AppManager {
         loginMenu.showLoginMenu();
     }
 
-    public Event handleAdminAction(AdminMenu.AdminAction action, int input) throws SQLException {
-        Event event = new Event(null, Prompts.ERROR);
+    public void handleAdminAction(AdminAction action, int input) throws SQLException {
         System.out.println("handleAdminAction, input is: " + input + " Action is: " + action);
-        if (!verifyAdmin()){
-            return new Event(null, Prompts.WRONG_PASS);
+        if (!confirmAdmin()){
+            adminMenu.printResponse(Prompts.WRONG_PASS);
         }
-        switch (action) {
-            case SEE_USERS -> event = retrieveUsers();
-            case SEE_ALL_NOTES, SEE_NOTES -> event = retrieveNotes(action, input);
-            case DELETE_USER_NOTES -> event.setPrompts(removeNote(input, user.getId(), true, false));
-            case DELETE_NOTE -> event.setPrompts(removeNote(input, user.getId(), false, false));
-            case DELETE_ALL_NOTES -> event.setPrompts(removeNote(input, user.getId(), false, true));
+        else {
+            switch (action) {
+                case SEE_USERS -> retrieveUsers();
+                case SEE_ALL_NOTES, SEE_NOTES -> retrieveNotes(action, input);
+                case DELETE_USER_NOTES -> removeNote(input, user.getId(), true, false);
+                case DELETE_NOTE -> removeNote(input, user.getId(), false, false);
+                case DELETE_ALL_NOTES -> removeNote(input, user.getId(), false, true);
+                case SEE_ALL_LOGIN_LOGS -> getLogPosts(-1, null);
+                case SEE_LOGIN_FOR_STATUS -> getLogPosts(-1, LoginStatus.getStatus(input));
+                case SEE_LOGIN_FOR_USER -> getLogPosts(input, null);
+                case SEE_ALL_NOTE_LOGS, SEE_USER_NOTE_LOGS -> getNoteLogs(input);
+            }
         }
-        return event;
     }
 
     public void handleLogOut() throws SQLException {
         showLoginMenu();
     }
     private Prompts validateLogin(String username, String passwordInput) throws SQLException {
-        System.out.println("validateLogin is reached");
         if (databaseRelay.checkAvailability(username)) {
-            databaseRelay.logLoginAttempt(username, LoginStatus.UNKNOWN_USER);
             return Prompts.NO_SUCH_USER;
         }
-        System.out.println("name is not available (which means that there IS a user with this user name).");
         String passwordHash = databaseRelay.getPasswordHash(username);
         if (!passwordService.validatePassword(passwordInput, passwordHash)) {
             return Prompts.WRONG_PASS;
@@ -78,7 +76,6 @@ public class AppManager {
         if ((!newAccount) || result == Prompts.OK) {
             databaseRelay.logLoginAttempt(username, status);
         }
-        System.out.println("result is: " + result + " newAccount is: " + newAccount);
         return result;
     }
 
@@ -90,14 +87,14 @@ public class AppManager {
         };
     }
     private Prompts validateNewUser(String username, String passwordInput) throws SQLException {
-        Prompts check = iv.validate(InputValidator.InputType.USERNAME, List.of(username));
+        Prompts check = iv.validateLength(InputValidator.InputType.USERNAME, List.of(username));
         if (check != Prompts.OK){
             return check;
         }
         if (!databaseRelay.checkAvailability(username)){
             return Prompts.NAME_TAKEN;
         }
-        check = iv.validate(InputValidator.InputType.PASSWORD, List.of(passwordInput));
+        check = iv.validateLength(InputValidator.InputType.PASSWORD, List.of(passwordInput));
         if (check != Prompts.OK) {
             return check;
         }
@@ -108,15 +105,12 @@ public class AppManager {
     }
     private void setUser(String username, String passwordHash) throws SQLException {
         int userId = databaseRelay.getUserId(username, passwordHash);
-        User.Role role = User.Role.USER;
-        if (databaseRelay.checkIfAdmin(userId)){
-            role = User.Role.ADMIN;
-        }
+        User.Role role = databaseRelay.checkIfAdmin(userId) ? User.Role.ADMIN : User.Role.USER;
         this.user = new User(username, userId, role, LocalDateTime.now());
         loginMenu.setUser(user);
     }
     public Prompts changePassword(String username, String passwordInput, String newPasswordInput) throws SQLException {
-        Prompts lengthValidation = iv.validate(InputValidator.InputType.PASSWORD, List.of(newPasswordInput));
+        Prompts lengthValidation = iv.validateLength(InputValidator.InputType.PASSWORD, List.of(newPasswordInput));
         if(lengthValidation != Prompts.OK){
             return lengthValidation;
         }
@@ -126,7 +120,7 @@ public class AppManager {
         databaseRelay.saveNewPassword(username, passwordService.hashPassword(newPasswordInput));
         return Prompts.NEW_PASS_OK;
     }
-    private boolean verifyAdmin() throws SQLException {
+    private boolean confirmAdmin() throws SQLException {
         boolean verified = false;
         if (user.getRole()== User.Role.ADMIN) {
             verified = true;
@@ -137,22 +131,23 @@ public class AppManager {
         }
         return verified;
     }
+    public int getUserIdForAdminUse(String username) throws SQLException {
+        return (confirmAdmin()) ? databaseRelay.getUserIdForAdminUse(username) : -1;
+    }
     private boolean verifyPassword() throws SQLException {
         String passwordHash = databaseRelay.getPasswordHash(user.getUsername());
         String passwordInput = adminMenu.promptVerify();
         boolean verified = passwordService.validatePassword(passwordInput, passwordHash);
-        int attempt = 0;
-        if (!verified){
-            attempt = 1;
-        }
+        int attempt = verified ? 0 : 1;
+        user.setIncorrectAttempts(attempt);
         if (user.getIncorrectAttempts() >=3) {
             adminMenu.forcedLogout();
         }
-        user.setIncorrectAttempts(attempt);
         return verified;
     }
-    public Prompts handleNoteAction(UserMenu.NoteAction userAction, Note note) throws SQLException {
+    public Prompts handleUserAction(NoteAction userAction, Note note) throws SQLException {
         Prompts result = Prompts.OK;
+        System.out.println("handleUserAction is called, action is: " + userAction);
         switch (userAction) {
             case ADD -> result = addNote(note);
             case READ ->  {
@@ -170,28 +165,26 @@ public class AppManager {
         }
         return result;
     }
-    private Event retrieveUsers() throws SQLException {
-        List<User> usernames = databaseRelay.getUsers();
+    private void retrieveUsers() throws SQLException {
+
         user.setVerified(false);
-        return new Event(usernames, Prompts.OK);
+        adminMenu.displayUsers(new Event(databaseRelay.getUsers(), Prompts.OK));
     }
-    private Event retrieveNotes(AdminMenu.AdminAction action, int userId) throws SQLException {
-        boolean allNotes = action != AdminMenu.AdminAction.SEE_NOTES;
-        List<Note> notes = databaseRelay.getNotes(userId, allNotes);
+    private void retrieveNotes(AdminAction action, int userId) throws SQLException {
+        boolean allNotes = action != AdminAction.SEE_NOTES;
         user.setVerified(false);
-        return new Event(notes, Prompts.OK);
+        adminMenu.displayNotes(databaseRelay.getNotes(userId, allNotes), allNotes, true);
     }
 
     private Prompts addNote(Note note) throws SQLException {
-        Prompts lengthsResult = iv.validate(InputValidator.InputType.NOTE, List.of(note.getTitle(), note.getContents()));
+        Prompts lengthsResult = iv.validateLength(InputValidator.InputType.NOTE, List.of(note.getTitle(), note.getContents()));
         if (lengthsResult != Prompts.OK){
-             return lengthsResult;
-         }
+            return lengthsResult;
+        }
         return databaseRelay.addNote(user.getId(), note.getTitle(), note.getContents()) ? Prompts.OK : Prompts.ERROR;
     }
     public void readNotes(boolean allNotes) throws SQLException {
-        List<Note> notes = databaseRelay.getNotes(user.getId(), allNotes);
-        userMenu.showAllNotes(notes);
+        userMenu.showAllNotes(databaseRelay.getNotes(user.getId(), allNotes));
     }
     private boolean editNote(Note n) throws SQLException {
         return databaseRelay.editNote(user.getId(), n);
@@ -200,8 +193,7 @@ public class AppManager {
         if (allNotes) {
             if (user.isVerified()) {
                 user.setVerified(false);
-                databaseRelay.removeAllNotes();
-                return Prompts.OK;
+                return databaseRelay.removeAllNotes() ? Prompts.OK : Prompts.ERROR;
             }
             return Prompts.WRONG_PASS;
         }
@@ -210,5 +202,32 @@ public class AppManager {
             return databaseRelay.removeNotesForUser(userId, noteId, allUserNotes) ? Prompts.OK : Prompts.NO_SUCH_NOTE;
         }
         return Prompts.ERROR;
+    }
+
+    private void getLogPosts(int input, LoginStatus status) throws SQLException {
+        List<LogPost> logPosts;
+        if (input!=-1){
+            logPosts = databaseRelay.getLogPostForUser(input);
+        }
+        else if (status!= null){
+            logPosts = databaseRelay.getLogPostForStatus(status);
+        }
+        else {
+            logPosts = databaseRelay.getLogPosts();
+        }
+        user.setVerified(false);
+        adminMenu.showLogPosts(logPosts);
+    }
+
+    private void getNoteLogs(int input) throws SQLException {
+        List<NoteLog> noteLogs;
+        if (input!=-1) {
+            noteLogs = databaseRelay.getNoteLogsForActor(input);
+        }
+        else {
+            noteLogs = databaseRelay.getAllNoteLogs();
+        }
+        user.setVerified(false);
+        adminMenu.showNoteLogs(noteLogs);
     }
 }

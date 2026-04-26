@@ -1,0 +1,15 @@
+package Control;
+
+public enum AdminAction {
+    SEE_USERS,
+    SEE_NOTES,
+    SEE_ALL_NOTES,
+    DELETE_NOTE,
+    DELETE_USER_NOTES,
+    DELETE_ALL_NOTES,
+    SEE_ALL_LOGIN_LOGS,
+    SEE_ALL_NOTE_LOGS,
+    SEE_LOGIN_FOR_STATUS,
+    SEE_LOGIN_FOR_USER,
+    SEE_USER_NOTE_LOGS}
+

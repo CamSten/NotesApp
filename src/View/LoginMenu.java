@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 
 public class LoginMenu {
-    private final Feedback f;
+    private final ConsoleIO f;
     private final AppManager appManager;
     private final UserMenu userMenu;
     private final AdminMenu adminMenu;
@@ -22,7 +22,7 @@ public class LoginMenu {
         this.userMenu = userMenu;
         this.adminMenu = adminMenu;
         this.appManager = appManager;
-        this.f = new Feedback(scan);
+        this.f = new ConsoleIO(scan);
     }
 
     public void showLoginMenu() throws SQLException {
@@ -123,6 +123,6 @@ public class LoginMenu {
     private final String returnToLogin = "Press 'x' to cancel.";
     private final String namePrompt = "Enter user name: ";
     private final String passwordPrompt = "Enter password:";
-    private final String newPasswordPrompt = "Enter your choice of password:\n";
-    private final String newUsernamePrompt = "Enter your choice of user name:\n";
+    private final String newPasswordPrompt = "Enter your choice of password:";
+    private final String newUsernamePrompt = "Enter your choice of user name:";
 }

@@ -6,7 +6,7 @@ import java.util.List;
 public class InputValidator {
     public enum InputType {USERNAME, PASSWORD, NOTE, NOTE_TITLE, NOTE_TEXT}
 
-    public Prompts validate(InputType inputType, List<String> inputValues){
+    public Prompts validateLength(InputType inputType, List<String> inputValues){
         List<Prompts> results = new ArrayList<>();
         Prompts result = Prompts.OK;
         switch (inputType) {
@@ -21,75 +21,23 @@ public class InputValidator {
         }
         return results.stream().filter(p -> p != result).findFirst().orElse(result);
     }
-    public Prompts lengthValidation(String username, String password){
-        if (checkTooLong(username, InputType.USERNAME) != Prompts.OK) {
-            return Prompts.LONG_NAME;
-        }
-        else if (checkTooShort(username, InputType.USERNAME) != Prompts.OK){
-            return Prompts.SHORT_NAME;
-        }
-        if (checkTooLong(password, InputType.PASSWORD) != Prompts.OK){
-            return Prompts.LONG_PASS;
-        }
-        else if (checkTooShort(password, InputType.PASSWORD) != Prompts.OK){
-            return Prompts.SHORT_PASS;
-        }
-        return Prompts.OK;
-    }
+
     public Prompts checkTooShort(String userinput, InputType inputType){
-        switch (inputType){
-            case USERNAME -> {
-                if( userinput.length() < 2){
-                    return Prompts.SHORT_NAME;
-                }
-            }
-            case PASSWORD -> {
-                if (userinput.length() < 14){
-                    return Prompts.SHORT_PASS;
-                }
-            }
-            case NOTE_TITLE -> {
-                if (userinput.isEmpty()){
-                    return Prompts.SHORT_TITLE;
-                }
-            }
-            case NOTE_TEXT ->{
-                if (userinput.isEmpty()){
-                    return Prompts.SHORT_TEXT;
-                }
-            }
-            default -> {
-                return Prompts.ERROR;
-            }
-        }
-        return Prompts.OK;
+        return switch (inputType){
+            case USERNAME -> userinput.length() < 2 ? Prompts.SHORT_NAME : Prompts.OK;
+            case PASSWORD -> userinput.length() < 14 ? Prompts.SHORT_PASS : Prompts.OK;
+            case NOTE_TITLE -> userinput.isEmpty() ? Prompts.SHORT_TITLE :  Prompts.OK;
+            case NOTE_TEXT -> userinput.isEmpty() ? Prompts.SHORT_TEXT : Prompts.OK;
+            default ->  Prompts.ERROR;
+        };
     }
     public Prompts checkTooLong(String userinput, InputType inputType){
-        switch (inputType){
-            case USERNAME -> {
-                if (userinput.length() > 15){
-                    return Prompts.LONG_NAME;
-                }
-            }
-            case PASSWORD -> {
-                if (userinput.length() > 30){
-                    return Prompts.LONG_PASS;
-                }
-            }
-            case NOTE_TITLE -> {
-                if (userinput.length() > 75){
-                    return Prompts.LONG_TITLE;
-                }
-            }
-            case NOTE_TEXT -> {
-                if (userinput.length() > 500){
-                    return Prompts.LONG_TEXT;
-                }
-            }
-            default -> {
-                return Prompts.ERROR;
-            }
-        }
-        return Prompts.OK;
+     return switch (inputType){
+            case USERNAME -> userinput.length() > 15 ? Prompts.LONG_NAME : Prompts.OK;
+            case PASSWORD -> userinput.length() > 30 ? Prompts.LONG_PASS : Prompts.OK;
+            case NOTE_TITLE -> userinput.length() > 75 ? Prompts.SHORT_NAME : Prompts.OK;
+            case NOTE_TEXT ->  userinput.length() > 500 ? Prompts.SHORT_NAME : Prompts.OK;
+            default -> Prompts.ERROR;
+        };
     }
 }
