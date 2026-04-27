@@ -3,36 +3,37 @@ package View;
 import Control.AppManager;
 import Control.Prompts;
 import Model.User;
+import View.AdminIO.AdminMenu;
+import View.UserIO.UserMenu;
 import java.sql.SQLException;
 import java.util.EnumSet;
-import java.util.Scanner;
-
 
 public class LoginMenu {
-    private final ConsoleIO f;
+    private final ConsoleInput ci;
+    private final ConsoleOutput co;
     private final AppManager appManager;
     private final UserMenu userMenu;
     private final AdminMenu adminMenu;
     private User user;
-    private final Scanner scan = new Scanner(System.in);
-    private final EnumSet passwordErrors = EnumSet.of(Prompts.WRONG_PASS, Prompts.SHORT_PASS, Prompts.LONG_PASS);
-    private final EnumSet usernameErrors = EnumSet.of(Prompts.NO_SUCH_USER, Prompts.SHORT_NAME, Prompts.LONG_NAME);
+    private final EnumSet<Prompts> passwordErrors = EnumSet.of(Prompts.WRONG_PASS, Prompts.SHORT_PASS, Prompts.LONG_PASS);
+    private final EnumSet<Prompts> usernameErrors = EnumSet.of(Prompts.NO_SUCH_USER, Prompts.SHORT_NAME, Prompts.LONG_NAME);
 
-    public LoginMenu(UserMenu userMenu, AdminMenu adminMenu, AppManager appManager){
+    public LoginMenu(UserMenu userMenu, AdminMenu adminMenu, AppManager appManager, ConsoleInput ci, ConsoleOutput co){
         this.userMenu = userMenu;
         this.adminMenu = adminMenu;
         this.appManager = appManager;
-        this.f = new ConsoleIO(scan);
+        this.ci = ci;
+        this.co = co;
     }
 
     public void showLoginMenu() throws SQLException {
         System.out.print("\nPress 1 to log in\nPress 2 to create a new account\nPress 'x' to quit");
-        String choice = f.input();
+        String choice = ci.lowCaseInput();
         switch (choice) {
             case "1" -> getLoginInput("--Log in:\n", false);
             case "2" -> getLoginInput("--Creating a new account:\n", true);
             case "x" -> System.exit(1);
-            default -> System.out.println(invalidChoice);
+            default -> co.promptInvalid();
         }
     }
 
@@ -42,8 +43,8 @@ public class LoginMenu {
             prompt = newPasswordPrompt;
         }
         System.out.println(prompt);
-        String password = scan.nextLine().trim();
-        if (f.checkIfQuit(password)) {
+        String password = ci.input();
+        if (ci.checkIfQuit(password)) {
             showLoginMenu();
         }
         return password;
@@ -55,8 +56,8 @@ public class LoginMenu {
         }
         System.out.println(prompt);
         System.out.println(returnToLogin);
-        String name = scan.nextLine().trim();
-        if (f.checkIfQuit(name.toLowerCase())) {
+        String name = ci.input();
+        if (ci.checkIfQuit(name.toLowerCase())) {
             showLoginMenu();
         }
         return name;
@@ -65,8 +66,7 @@ public class LoginMenu {
         return firstPass.equals(secondPass);
     }
     private void getLoginInput (String prompt, boolean newUser) throws SQLException {
-        System.out.println("---getLoginInput is called");
-        String passwordInput = "";
+        String passwordInput;
         String nameInput = "";
         boolean validPassword = false;
         boolean validUsername = false;
@@ -90,11 +90,11 @@ public class LoginMenu {
                     validUsername = true;
                 }
                 else if (usernameErrors.contains(response)){
-                    f.prompt(response);
+                    co.prompt(response);
                 }
                 else if (passwordErrors.contains(response)){
                     validUsername = true;
-                    f.prompt(response);
+                    co.prompt(response);
                 }
             }
             if (validPassword){
@@ -119,7 +119,6 @@ public class LoginMenu {
             userMenu.greet(user.getUsername());
         }
     }
-    private final String invalidChoice = "You haven't submitted av valid choice. Please try again.\n";
     private final String returnToLogin = "Press 'x' to cancel.";
     private final String namePrompt = "Enter user name: ";
     private final String passwordPrompt = "Enter password:";

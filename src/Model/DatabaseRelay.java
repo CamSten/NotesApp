@@ -48,8 +48,8 @@ public class DatabaseRelay {
         System.out.println("IN D B R ADDNEWUSER, username/hash is: " + username + "/" +passwordHash);
         userRepo.addNewUser(username, passwordHash);
     }
-    public void saveNewPassword(String username, String newPasswordHash) throws SQLException {
-        userRepo.saveNewPassword(username, newPasswordHash);
+    public void saveNewPassword(int userId, String newPasswordHash) throws SQLException {
+        userRepo.saveNewPassword(userId, newPasswordHash);
     }
     public boolean addNote(int userId, String title, String contents) throws SQLException {
         return noteRepo.addNote(userId, title, contents);

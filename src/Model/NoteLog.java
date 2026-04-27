@@ -1,7 +1,6 @@
 package Model;
 
 import Control.NoteAction;
-import View.UserMenu;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

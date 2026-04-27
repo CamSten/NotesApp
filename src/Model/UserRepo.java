@@ -78,9 +78,9 @@ public class UserRepo {
         return s.execute();
     }
 
-    public boolean saveNewPassword(String username, String newPasswordHash) throws SQLException {
+    public boolean saveNewPassword(int userId, String newPasswordHash) throws SQLException {
         CallableStatement s = c.prepareCall("CALL changePassword (?, ?)");
-        s.setString(1, username);
+        s.setInt(1, userId);
         s.setString(2, newPasswordHash);
         return s.execute();
 
