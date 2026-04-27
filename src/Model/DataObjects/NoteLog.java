@@ -1,7 +1,6 @@
-package Model;
+package Model.DataObjects;
 
-import Control.NoteAction;
-
+import Control.Enums.NoteAction;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -11,7 +10,6 @@ public class NoteLog {
     private int noteId;
     private NoteAction noteAction;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
-
 
     public NoteLog(LocalDateTime date, int actorUserId, int noteId, String action) {
         this.date = date;
@@ -24,24 +22,12 @@ public class NoteLog {
         return formatter.format(date);
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
     public int getActorUserId() {
         return actorUserId;
     }
 
-    public void setActorUserId(int actorUserId) {
-        this.actorUserId = actorUserId;
-    }
-
     public int getNoteId() {
         return noteId;
-    }
-
-    public void setNoteId(int noteId) {
-        this.noteId = noteId;
     }
 
     public NoteAction getNoteAction() {

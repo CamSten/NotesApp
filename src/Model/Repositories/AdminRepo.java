@@ -1,15 +1,12 @@
-package Model;
+package Model.Repositories;
 
-import Control.LoginStatus;
+import Control.Enums.LoginStatus;
+import Model.DataObjects.LogPost;
+import Model.DataObjects.NoteLog;
 
-import java.security.PublicKey;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class AdminRepo {
     private static Connection c;
@@ -83,5 +80,4 @@ public class AdminRepo {
         }
         return noteLogs;
     }
-
 }

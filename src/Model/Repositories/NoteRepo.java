@@ -1,9 +1,10 @@
-package Model;
+package Model.Repositories;
+
+import Model.DataObjects.Note;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class NoteRepo {
     private static Connection c;
@@ -23,7 +24,6 @@ public class NoteRepo {
     public List<Note> getNotes(int thisUserId, boolean allNotes) throws SQLException {
         List<Note> notes = new ArrayList<>();
         PreparedStatement  s = c.prepareStatement("SELECT * from notes_view");
-
         if (!allNotes){
             s = c.prepareStatement("SELECT * from notes_view where userId = ?");
             s.setInt(1, thisUserId);
@@ -44,25 +44,22 @@ public class NoteRepo {
         return notes;
     }
 
-    public boolean editNote(int thisUserId, int thisNoteId, String newTitle, String newContents) throws SQLException {
+    public int editNote(int thisUserId, int thisNoteId, String newTitle, String newContents) throws SQLException {
         CallableStatement s = c.prepareCall("CALL editNote(?, ?, ?, ?)");
         s.setInt(1, thisUserId);
         s.setInt(2, thisNoteId);
         s.setString(3, newTitle);
         s.setString(4, newContents);
-        return s.execute();
+        return s.executeUpdate();
     }
     public boolean deleteNotes(int thisUserId, int thisNoteId, boolean deleteAll) throws SQLException {
-        System.out.println("deleteNotesForUser is called in NoteRepo. userId/noteId/deleteAll is: " + thisUserId + "/" + thisNoteId + "/" + deleteAll);
         CallableStatement s = c.prepareCall("CALL deleteNotesForUser(?, ?, ?)");
         s.setInt(1, thisUserId);
         s.setInt(2, thisNoteId);
         s.setBoolean(3, deleteAll);
         int affectedRows = s.executeUpdate();
-        System.out.println("result: " + affectedRows);
         return affectedRows > 0;
     }
-
     public boolean deleteAllNotes() throws SQLException {
         CallableStatement s = c.prepareCall("CALL deleteAllNotes");
         int affectedRows = s.executeUpdate();

@@ -1,4 +1,4 @@
-package Model;
+package Model.DataObjects;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -58,5 +58,4 @@ public class Note {
     public void setUsername(String username) {
         this.username = username;
     }
-
 }

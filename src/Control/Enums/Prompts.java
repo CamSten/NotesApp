@@ -1,4 +1,4 @@
-package Control;
+package Control.Enums;
 
 public enum Prompts {
     SHORT_PASS ("The password is too short, please try again.\nThe password needs to be at least 14 characters, with at least one letter, one digit and one special character"),

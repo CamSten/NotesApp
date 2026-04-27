@@ -1,9 +1,9 @@
 package View.AdminIO;
 
-import Control.AdminAction;
+import Control.Enums.AdminAction;
 import Control.AppManager;
 import Control.Event;
-import Model.User;
+import Model.DataObjects.User;
 import View.ConsoleInput;
 import View.ConsoleOutput;
 import java.sql.SQLException;

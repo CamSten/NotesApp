@@ -1,11 +1,9 @@
 package View.AdminIO;
 
-import Control.AdminAction;
-import Control.AppManager;
-import Model.Note;
-import Model.NoteLog;
-import View.ConsoleInput;
-import View.ConsoleOutput;
+import Control.*;
+import Control.Enums.*;
+import Model.DataObjects.*;
+import View.*;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -23,27 +21,24 @@ public class AdminNotesMenu {
     }
 
     public void seeNotes() throws SQLException {
-        while (true) {
+        boolean completed = true;
+        while (completed) {
             System.out.println(noteMenuPrompt + am.returnToMain);
             String choice = ci.lowCaseInput();
             if (ci.checkIfQuit(choice)) {
                 return;
             }
             switch (choice) {
-                case "1" -> {
-                    appManager.handleAdminAction(AdminAction.SEE_ALL_NOTES, -1);
-                    return;
-                }
+                case "1" -> appManager.handleAdminAction(AdminAction.SEE_ALL_NOTES, -1);
                 case "2" -> {
                     System.out.println(am.userNamePrompt + "notes.");
                     appManager.handleAdminAction(AdminAction.SEE_NOTES, ci.parseInput(ci.lowCaseInput()));
-                    return;
                 }
-                case "3" -> {
-                    seeNoteLogs();
-                    return;
+                case "3" -> seeNoteLogs();
+                default -> {
+                    co.promptInvalid();
+                    completed = false;
                 }
-                default -> co.promptInvalid();
             }
         }
     }

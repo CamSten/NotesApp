@@ -1,4 +1,4 @@
-package Control;
+package Control.Enums;
 
 public enum AdminAction {
     SEE_USERS,

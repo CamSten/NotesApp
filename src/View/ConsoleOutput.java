@@ -1,13 +1,12 @@
 package View;
 
-import Control.Prompts;
-import Model.LogPost;
-import Model.Note;
-import Model.NoteLog;
-import Model.User;
+import Control.Enums.Prompts;
+import Model.DataObjects.LogPost;
+import Model.DataObjects.Note;
+import Model.DataObjects.NoteLog;
+import Model.DataObjects.User;
 
 public class ConsoleOutput {
-
     public String getUserPostString(User u, boolean allInfo){
         StringBuilder post = new StringBuilder();
         if (!allInfo){

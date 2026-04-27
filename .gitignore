@@ -28,4 +28,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-/src/Model/DB.Properties
+/src/Model/Properties/DB.Properties

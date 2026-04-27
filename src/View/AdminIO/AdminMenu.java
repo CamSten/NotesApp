@@ -1,14 +1,9 @@
 package View.AdminIO;
 
-import Control.AdminAction;
-import Control.AppManager;
-import Control.Event;
-import Control.Prompts;
-import Model.LogPost;
-import Model.Note;
-import Model.NoteLog;
-import View.ConsoleInput;
-import View.ConsoleOutput;
+import Control.*;
+import Control.Enums.*;
+import Model.DataObjects.*;
+import View.*;
 import java.sql.SQLException;
 import java.util.List;
 

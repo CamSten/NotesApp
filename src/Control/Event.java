@@ -1,5 +1,7 @@
 package Control;
 
+import Control.Enums.Prompts;
+
 public class Event {
     Object data;
     Prompts prompts;

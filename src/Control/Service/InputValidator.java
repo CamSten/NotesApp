@@ -1,4 +1,6 @@
-package Control;
+package Control.Service;
+
+import Control.Enums.Prompts;
 
 import java.util.ArrayList;
 import java.util.List;

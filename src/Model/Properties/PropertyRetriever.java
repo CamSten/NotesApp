@@ -1,4 +1,4 @@
-package Model;
+package Model.Properties;
 
 import java.io.FileInputStream;
 import java.util.Properties;
@@ -6,7 +6,7 @@ import java.util.Properties;
 public class PropertyRetriever {
     private static Properties prop = new Properties();
     static {
-        try(FileInputStream in = new FileInputStream("src/Model/DB.properties")) {
+        try(FileInputStream in = new FileInputStream("src/Model/Properties/DB.properties")) {
             prop.load(in);
         } catch (Exception e) {
             System.out.println("Error loading properties");

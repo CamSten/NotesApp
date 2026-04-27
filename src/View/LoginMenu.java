@@ -1,8 +1,8 @@
 package View;
 
 import Control.AppManager;
-import Control.Prompts;
-import Model.User;
+import Control.Enums.Prompts;
+import Model.DataObjects.User;
 import View.AdminIO.AdminMenu;
 import View.UserIO.UserMenu;
 import java.sql.SQLException;

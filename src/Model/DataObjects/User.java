@@ -1,4 +1,4 @@
-package Model;
+package Model.DataObjects;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,7 +13,6 @@ public class User {
     int incorrectAttempts = 0;
     private LocalDateTime regDate;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
-
 
     public User(String username, int id, Role role, LocalDateTime regDate) {
         this.username = username;
@@ -37,10 +36,6 @@ public class User {
         return formatter.format(regDate);
     }
 
-    public void setRegDate(LocalDateTime regDate) {
-        this.regDate = regDate;
-    }
-
     public boolean isVerified() {
         return verified;
     }
@@ -51,13 +46,10 @@ public class User {
         return incorrectAttempts;
     }
     public void setIncorrectAttempts(int number) {
-        System.out.println("number is: " + number);
         if (number == 0) {
             this.incorrectAttempts = 0;
         } else {
             incorrectAttempts += 1;
         }
     }
-
-
 }

@@ -1,17 +1,25 @@
 package Model;
 
-import Control.LoginStatus;
-
+import Control.Enums.LoginStatus;
+import Model.DataObjects.LogPost;
+import Model.DataObjects.Note;
+import Model.DataObjects.NoteLog;
+import Model.DataObjects.User;
+import Model.Properties.PropertyRetriever;
+import Model.Repositories.AdminRepo;
+import Model.Repositories.NoteRepo;
+import Model.Repositories.UserRepo;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 
+
 public class DatabaseRelay {
     private static Connection c;
-    private UserRepo userRepo;
-    private NoteRepo noteRepo;
-    private AdminRepo adminRepo;
+    private final UserRepo userRepo;
+    private final NoteRepo noteRepo;
+    private final AdminRepo adminRepo;
 
     public DatabaseRelay() throws SQLException {
         this.c = DriverManager.getConnection(PropertyRetriever.getUrl(), PropertyRetriever.getUser(), PropertyRetriever.getPassword());
@@ -20,7 +28,6 @@ public class DatabaseRelay {
         this.adminRepo = new AdminRepo(c);
     }
     public List<User> getUsers() throws SQLException {
-        System.out.println("---get users is called in DB R");
         return userRepo.getUsers();
     }
     public String getPasswordHash(String username) throws SQLException {
@@ -29,10 +36,9 @@ public class DatabaseRelay {
     public boolean checkAvailability(String requestedName) throws SQLException {
         return userRepo.checkNameAvailability(requestedName);
     }
-
-    public boolean logLoginAttempt(String username, LoginStatus status) throws SQLException {
+    public void logLoginAttempt(String username, LoginStatus status) throws SQLException {
         int id = userRepo.getUserIdForAdminUse(username);
-        return userRepo.logLoginAttempt(id, status);
+        userRepo.logLoginAttempt(id, status);
     }
     public int getUserId(String username, String passwordHash) throws SQLException {
         return userRepo.getUserId(username, passwordHash);
@@ -41,11 +47,9 @@ public class DatabaseRelay {
         return userRepo.getUserIdForAdminUse(username);
     }
     public boolean checkIfAdmin(int userid) throws SQLException {
-        System.out.println("CHECKIFADMIN in D B R");
         return userRepo.checkIfAdmin(userid);
     }
     public void addNewUser(String username, String passwordHash) throws SQLException {
-        System.out.println("IN D B R ADDNEWUSER, username/hash is: " + username + "/" +passwordHash);
         userRepo.addNewUser(username, passwordHash);
     }
     public void saveNewPassword(int userId, String newPasswordHash) throws SQLException {
@@ -58,7 +62,7 @@ public class DatabaseRelay {
         return noteRepo.getNotes(thisUserId, allNotes);
     }
     public boolean editNote(int userId, Note n) throws SQLException {
-        return noteRepo.editNote(userId, n.getId(), n.getTitle(), n.getContents());
+        return (noteRepo.editNote(userId, n.getId(), n.getTitle(), n.getContents()) > 0);
     }
     public boolean removeNotesForUser(int userId, int noteId, boolean allNotes) throws SQLException {
         return noteRepo.deleteNotes(userId, noteId, allNotes);

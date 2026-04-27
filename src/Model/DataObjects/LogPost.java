@@ -1,7 +1,6 @@
-package Model;
+package Model.DataObjects;
 
-import Control.LoginStatus;
-
+import Control.Enums.LoginStatus;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -21,16 +20,8 @@ public class LogPost {
         return formatter.format(date);
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
     public int getUserId() {
         return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
     }
 
     public LoginStatus getLoginStatus() {

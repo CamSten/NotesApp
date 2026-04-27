@@ -1,14 +1,13 @@
-package Model;
+package Model.Repositories;
 
-import Control.AppManager;
-import Control.LoginStatus;
-
+import Control.Enums.LoginStatus;
+import Model.DataObjects.User;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import static Model.User.Role.USER;
+
+import static Model.DataObjects.User.Role.USER;
 
 public class UserRepo {
     private static Connection c;
@@ -17,11 +16,11 @@ public class UserRepo {
         this.c = c;
     }
 
-    public boolean logLoginAttempt(int userId, LoginStatus status) throws SQLException {
+    public void logLoginAttempt(int userId, LoginStatus status) throws SQLException {
         CallableStatement s = c.prepareCall("CALL logLoginAttempt(?, ?)");
         s.setInt(1, userId);
         s.setString(2, String.valueOf(status));
-        return s.execute();
+        s.execute();
     }
     public String getPasswordHash(String username) throws SQLException {
         PreparedStatement s = c.prepareStatement("SELECT * FROM AppUser where username = ?");
@@ -68,22 +67,20 @@ public class UserRepo {
         s.setInt(1, userId);
         s.execute();
         boolean result = s.getBoolean(2);
-        System.out.println("in USER REPO, result for isAdmin is: " + result + " for userId: "+ userId );
         return result;
     }
-    public boolean addNewUser(String username, String passwordHash) throws SQLException {
+    public void addNewUser(String username, String passwordHash) throws SQLException {
         CallableStatement s = c.prepareCall("CALL newAppUserValidation (?, ?)");
         s.setString(1, username);
         s.setString(2, passwordHash);
-        return s.execute();
+        s.execute();
     }
 
-    public boolean saveNewPassword(int userId, String newPasswordHash) throws SQLException {
+    public void saveNewPassword(int userId, String newPasswordHash) throws SQLException {
         CallableStatement s = c.prepareCall("CALL changePassword (?, ?)");
         s.setInt(1, userId);
         s.setString(2, newPasswordHash);
-        return s.execute();
-
+        s.execute();
     }
     public List<User> getUsers() throws SQLException {
         List<User> allUsers = new ArrayList<>();

@@ -1,9 +1,9 @@
 package View;
 
 import Control.Event;
-import Control.Prompts;
-import Model.Note;
-import Model.User;
+import Control.Enums.Prompts;
+import Model.DataObjects.Note;
+import Model.DataObjects.User;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;

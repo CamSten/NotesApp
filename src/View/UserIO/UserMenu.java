@@ -1,25 +1,28 @@
 package View.UserIO;
 
 import Control.AppManager;
-import Control.Prompts;
-import Model.Note;
+import Control.Enums.Prompts;
+import Model.DataObjects.Note;
 import View.ConsoleInput;
 import View.ConsoleOutput;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class UserMenu {
-    ConsoleInput ci;
-    AppManager appManager;
-    String username;
-    ConsoleOutput co;
-    UserNotesMenu notesMenu;
+    private ConsoleInput ci;
+    private AppManager appManager;
+    private String username;
+    private ConsoleOutput co;
+    private UserNotesMenu notesMenu;
+    private Map<String, SQLRunnable> mainMenuOptions;
 
-    public UserMenu(AppManager appManager, ConsoleInput ci, ConsoleOutput co) {
+    public UserMenu(AppManager appManager, ConsoleInput ci, ConsoleOutput co) throws SQLException {
         this.appManager = appManager;
         this.ci = ci;
         this.co = co;
         this.notesMenu = new UserNotesMenu(co, ci, this, appManager);
+        this.mainMenuOptions = getMainMenu();
     }
 
     public void greet(String username) throws SQLException {
@@ -33,24 +36,23 @@ public class UserMenu {
         while (loggedIn) {
             System.out.println(mainMenuPrompt);
             String choice = ci.lowCaseInput();
-            switch (choice) {
-                case "1" -> notesMenu.addNewNote();
-                case "2" -> notesMenu.readNotes(false);
-                case "3" -> changePassword();
-                case "4" -> {
-                    loggedIn = false;
-                    appManager.handleLogOut();
-                }
-                default -> co.promptInvalid();
+            SQLRunnable action = mainMenuOptions.get(choice);
+            if (action == null){
+                co.promptInvalid();
+                continue;
+            }
+            action.run();
+            if (choice.equals("4")){
+                loggedIn = false;
             }
         }
     }
     public void showAllNotes(List<Note> notes) throws SQLException {
-        notesMenu.showAllNotes(notes);
+        SQLRunnable action = !notes.isEmpty() ? () -> notesMenu.showAllNotes(notes) : () -> notesMenu.informEmpty();
+        action.run();
     }
-    private void changePassword() throws SQLException {
-        boolean completed = false;
-        while (!completed) {
+    public void changePassword() throws SQLException {
+        while (true) {
             System.out.println("--Changing password:");
             System.out.println(returnToMain);
             System.out.println("Enter your current password:");
@@ -65,8 +67,8 @@ public class UserMenu {
             }
             Prompts response = appManager.changePassword(username, password, newPassword);
             if (response == Prompts.NEW_PASS_OK) {
-                completed = true;
                 System.out.println("Your password has been changed.\n");
+                return;
             } else {
                 co.prompt(response);
             }
@@ -74,6 +76,17 @@ public class UserMenu {
     }
     public String confirmPassword(){
         return ci.promptVerify();
+    }
+
+    public void displayReply(Prompts prompts){
+        System.out.println(prompts);
+    }
+
+    private Map<String, SQLRunnable> getMainMenu() throws SQLException {
+        List<String> input = List.of("1", "2", "3", "4");
+        List<SQLRunnable> toPerform = List.of(() -> notesMenu.addNewNote(), () -> notesMenu.readNotes(), this::changePassword, () -> appManager.handleLogOut());
+        MenuOptions menuOptions = new MenuOptions(input, toPerform);
+        return menuOptions.createMenu();
     }
     private final String mainMenuPrompt = "What would you like to do?\n- 1: Add a new note\n- 2: Browse saved notes\n- 3: Change password\n- 4:Log out\nSubmit the number of your choice:\n";
     public final String returnToMain = "Press 'x' to return to the main menu.\n";
