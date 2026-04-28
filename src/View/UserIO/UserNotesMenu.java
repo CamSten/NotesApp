@@ -2,6 +2,7 @@ package View.UserIO;
 
 import Control.AppManager;
 import Control.Enums.*;
+import Control.Service.*;
 import Model.DataObjects.Note;
 import View.*;
 import java.sql.SQLException;
@@ -39,7 +40,7 @@ public class UserNotesMenu {
                 return false;
             }
             int inputId = ci.getNoteIdFromList(ci.parseInput(choice), notes);
-            if (inputId == -1) {
+            if (inputId == -1 && !choice.equalsIgnoreCase("clear")) {
                 System.out.println("-- The note id does not exists. Try again.");
                 continue;
             }
@@ -110,8 +111,8 @@ public class UserNotesMenu {
         co.printHeader("Editing Note:");
         Consumer<String> titleSetter = n::setTitle;
         Consumer<String> textSetter = n::setContents;
-        boolean editTitle = editField(askTitle, "-- Input your new title:\n", titleSetter);
-        boolean editText = editField(askContents, "-- Input your new note contents:\n", textSetter);
+        boolean editTitle = editField(InputValidator.InputType.NOTE_TITLE, askTitle, "-- Input your new title:\n", titleSetter);
+        boolean editText = editField(InputValidator.InputType.NOTE_TEXT, askContents, "-- Input your new note contents:\n", textSetter);
         if (!editTitle && !editText) {
             System.out.println("\n-- No edits have been made to the post.");
             return true;
@@ -121,16 +122,26 @@ public class UserNotesMenu {
         return true;
     }
 
-    private boolean editField(String query, String prompt, Consumer<String> setter) {
+    private boolean editField(InputValidator.InputType inputType, String query, String prompt, Consumer<String> setter) {
         System.out.println(query + yesno + um.returnToMain);
         String choice = ci.input();
         if (ci.checkIfQuit(choice) || !ci.checkConfirm(choice, query)) {
             return false;
         }
-        System.out.println(prompt);
-        String input = ci.input();
-        setter.accept(input);
-        return true;
+        while (true) {
+            System.out.println(prompt);
+            String input = ci.input();
+            if (ci.checkIfQuit(input)){
+                return false;
+            }
+            Prompts lengthValidation = appManager.validateInputLength(input, inputType);
+            if (lengthValidation == Prompts.OK) {
+                setter.accept(input);
+                return true;
+            } else {
+                co.prompt(lengthValidation.toString());
+            }
+        }
     }
 
     public boolean deleteNote(Note n) throws SQLException {
@@ -139,39 +150,39 @@ public class UserNotesMenu {
         String choice = ci.lowCaseInput();
         if (choice.equalsIgnoreCase("1")) {
             appManager.handleUserAction(NoteAction.REMOVE, n);
+            System.out.println("\nThe note is removed.");
             return true;
         }
-        co.prompt(Prompts.ERROR.toString());
         return false;
     }
 
     public boolean deleteAllNotes() throws SQLException {
-        while (true) {
-            System.out.println(confirmDelete + um.returnToMain + yesno);
-            String choice = ci.input();
-            if (ci.checkIfQuit(choice)) {
-                return false;
-            }
-            if (ci.checkConfirm(choice, confirmDelete)) {
-                System.out.println("-- Removing all notes:");
-                appManager.handleUserAction(NoteAction.REMOVE_ALL, new Note(-1, "", "", null));
-                return true;
-            }
+        System.out.println(confirmDelete + um.returnToMain + yesno);
+        String choice = ci.input();
+        if (ci.checkIfQuit(choice)) {
+            return false;
         }
+        boolean doDelete = ci.checkConfirm(choice, confirmDelete);
+        if (doDelete) {
+            System.out.println("-- Removing all notes:");
+            appManager.handleUserAction(NoteAction.REMOVE_ALL, new Note(-1, "", "", null));
+            return true;
+        }
+        return false;
     }
 
     private Map<String, SQLRunnable> getNoteSubMenu(Note n, List<Note> notes) {
         List<String> input = List.of("1", "2", "3");
         List<SQLRunnable> toPerform = List.of(() -> editNote(n), () -> deleteNote(n), () -> showAllNotes(notes));
-        MenuOptions menuOptions = new MenuOptions(input, toPerform);
-        return menuOptions.createMenu();
+        MenuOptions menuOptions = new MenuOptions();
+        return menuOptions.createMenu(input, toPerform);
     }
 
     private Map<String, SQLRunnable> getNoteMenu(int inputId, List<Note> notes) {
         List<String> input = List.of("clear", String.valueOf(inputId));
-        List<SQLRunnable> toPerform = List.of(() -> deleteAllNotes(), () -> showNotesMenu(inputId, notes));
-        MenuOptions menuOptions = new MenuOptions(input, toPerform);
-        return menuOptions.createMenu();
+        List<SQLRunnable> toPerform = List.of(this::deleteAllNotes, () -> showNotesMenu(inputId, notes));
+        MenuOptions menuOptions = new MenuOptions();
+        return menuOptions.createMenu(input, toPerform);
     }
 
     private final String notesmenu = "-- You have saved the following notes.\n";

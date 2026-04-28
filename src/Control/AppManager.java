@@ -65,6 +65,14 @@ public class AppManager {
         showLoginMenu();
         return true;
     }
+
+    public boolean checkPassword(String passwordInput, String username) throws SQLException {
+        String passwordHash = databaseRelay.getPasswordHash(username);
+        if (!passwordService.validatePassword(passwordInput, passwordHash)) {
+            return false;
+        }
+        return true;
+    }
     public Prompts validateLogin(String username, String passwordInput) throws SQLException {
         if (databaseRelay.checkAvailability(username)) {
             return Prompts.NO_SUCH_USER;
@@ -138,7 +146,6 @@ public class AppManager {
     public void removeNote(int noteId, int userId, boolean allUserNotes, boolean allNotes) throws SQLException {
         AdminAction response = allUserNotes ? AdminAction.DELETE_USER_NOTES : AdminAction.DELETE_NOTE;
         if (allNotes) {
-            System.out.println("in removeNote, allNotes is true");
             if (user.isVerified()) {
                 adminService.resetAdminVerification();
                 adminService.relayReply(AdminAction.DELETE_ALL_NOTES, databaseRelay.removeAllNotes() ? Prompts.OK : Prompts.ERROR);
@@ -157,5 +164,8 @@ public class AppManager {
             return;
         }
         replyToUser(response, Prompts.WRONG_PASS);
+    }
+    public Prompts validateInputLength(String input, InputValidator.InputType inputType){
+        return iv.validateLength(inputType, List.of(input));
     }
 }

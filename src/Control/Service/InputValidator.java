@@ -9,6 +9,9 @@ public class InputValidator {
     public Prompts validateLength(InputType inputType, List<String> inputValues){
         List<Prompts> results = new ArrayList<>();
         Prompts result = Prompts.OK;
+        if (inputType == InputType.NOTE_TITLE || inputType == InputType.NOTE_TEXT){
+            results = List.of(checkTooShort(inputValues.getFirst(), inputType), checkTooLong(inputValues.getFirst(), inputType));
+        }
         switch (inputType) {
             case PASSWORD, USERNAME -> results = List.of(
                     checkTooShort(inputValues.getFirst(), inputType),
@@ -19,7 +22,7 @@ public class InputValidator {
                     checkTooLong(inputValues.getLast(), InputType.NOTE_TEXT),
                     checkTooShort(inputValues.getLast(), InputType.NOTE_TEXT));
         }
-        return results.stream().filter(p -> p != result).findFirst().orElse(result);
+        return results.stream().filter(p -> p != result).findAny().orElse(result);
     }
 
     public Prompts checkTooShort(String userinput, InputType inputType){

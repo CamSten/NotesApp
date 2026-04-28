@@ -9,12 +9,12 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class UserService {
-    private AppManager am;
-    private User user;
-    private PasswordService passwordService;
-    private DatabaseRelay databaseRelay;
-    private InputValidator iv;
-    private UserMenu userMenu;
+    private final AppManager am;
+    private final User user;
+    private final PasswordService passwordService;
+    private final DatabaseRelay databaseRelay;
+    private final InputValidator iv;
+    private final UserMenu userMenu;
 
     public UserService (AppManager am, User user, PasswordService passwordService, InputValidator iv, DatabaseRelay databaseRelay, UserMenu userMenu){
         this.am = am;
@@ -46,8 +46,17 @@ public class UserService {
         replyToUser(databaseRelay.addNote(user.getId(), note.getTitle(), note.getContents()) ? Prompts.OK : Prompts.ERROR);
     }
     public void editNote(Note n) throws SQLException {
-        replyToUser(databaseRelay.editNote(user.getId(), n) ? Prompts.OK : Prompts.NO_SUCH_NOTE);
+        Prompts response;
+        Prompts lengthValidation = iv.validateLength(InputValidator.InputType.NOTE, List.of(n.getTitle(), n.getContents()));
+        if (lengthValidation == Prompts.OK) {
+            response = databaseRelay.editNote(user.getId(), n) ? Prompts.OK : Prompts.NO_SUCH_NOTE;
+        }
+        else {
+            response = lengthValidation;
+        }
+        replyToUser(response);
     }
+
     public boolean verifyUserPassword() throws SQLException {
         String userInput = userMenu.confirmPassword();
         return passwordService.validatePassword(userInput, databaseRelay.getPasswordHash(user.getUsername()));
@@ -56,7 +65,7 @@ public class UserService {
     private Map<String, SQLRunnableVoid> getUserActionOptions (Note note){
         List<String> input = List.of(NoteAction.ADD.toString(), NoteAction.READ.toString(), NoteAction.EDIT.toString(), NoteAction.REMOVE.toString(), NoteAction.REMOVE_ALL.toString());
         MenuOptions options = new MenuOptions();
-        return options.getMenuOptions(input, List.of(() -> addNote(note), () -> readNotes(false), () -> editNote(note), () -> am.removeNote(note.getId(), user.getId(), false, false), () ->  am.removeNote(-1, user.getId(), true, false)));
+        return options.createMenuVoid(input, List.of(() -> addNote(note), () -> readNotes(false), () -> editNote(note), () -> am.removeNote(note.getId(), user.getId(), false, false), () ->  am.removeNote(-1, user.getId(), true, false)));
     }
 
     public void replyToUser(Prompts prompts) {

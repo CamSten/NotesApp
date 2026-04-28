@@ -2,6 +2,7 @@ package View;
 
 import Control.AppManager;
 import Control.Enums.Prompts;
+import Control.Service.InputValidator;
 import Model.DataObjects.User;
 import View.AdminIO.AdminMenu;
 import View.UserIO.*;
@@ -16,7 +17,6 @@ public class LoginMenu {
     private final UserMenu userMenu;
     private final AdminMenu adminMenu;
     private User user;
-    private MenuOptions loginMenuOptions;
     Map<String, SQLRunnable> options;
 
     public LoginMenu(UserMenu userMenu, AdminMenu adminMenu, AppManager appManager, ConsoleInput ci, ConsoleOutput co) {
@@ -26,7 +26,7 @@ public class LoginMenu {
         this.ci = ci;
         this.co = co;
         getLoginMenuOptions();
-        this.options = loginMenuOptions.createMenu();
+        getLoginMenuOptions();
     }
 
     public void showLoginMenu() throws SQLException {
@@ -64,7 +64,7 @@ public class LoginMenu {
                 continue;
             }
             String inputPrompt = newUser ? newPasswordPrompt : passwordEnter;
-            boolean addedPassword = gettingLoginInput(inputPrompt, loginData::setPasswordInput);
+            boolean addedPassword = gettingLoginInput(false, InputValidator.InputType.PASSWORD, inputPrompt, loginData::setPasswordInput);
             if (!addedPassword) {
                 return false;
             }
@@ -86,13 +86,13 @@ public class LoginMenu {
         if (loginData.isNameSet()) {
             return true;
         }
-        return gettingLoginInput(inputPrompt, loginData::setUsernameInput);
+        return gettingLoginInput(false, InputValidator.InputType.USERNAME, inputPrompt, loginData::setUsernameInput);
     }
 
     private boolean checkCompletedInput(LoginData loginData, boolean newUser) {
         Consumer<String> confirmPassSetter = loginData::setConfirmPassInput;
         if (newUser) {
-            boolean addedConfirm = gettingLoginInput(passwordConfirm, confirmPassSetter);
+            boolean addedConfirm = gettingLoginInput(true, InputValidator.InputType.PASSWORD, passwordConfirm, confirmPassSetter);
             if (!addedConfirm) {
                 return false;
             }
@@ -105,15 +105,21 @@ public class LoginMenu {
         return true;
     }
 
-    private boolean gettingLoginInput(String prompt, Consumer<String> inputSetter) {
-        System.out.println(prompt);
-        System.out.println(returnToLogin);
-        String input = ci.input();
-        if (ci.checkIfQuit(input)) {
-            return false;
+    private boolean gettingLoginInput(boolean confirm, InputValidator.InputType inputType, String prompt, Consumer<String> inputSetter) {
+        while (true) {
+            System.out.println(prompt);
+            System.out.println(returnToLogin);
+            String input = ci.input();
+            if (ci.checkIfQuit(input)) {
+                return false;
+            }
+            Prompts lengthValidation = appManager.validateInputLength(input, inputType);
+            if (confirm || lengthValidation == Prompts.OK) {
+                inputSetter.accept(input);
+                return true;
+            }
+            co.prompt(lengthValidation.toString());
         }
-        inputSetter.accept(input);
-        return true;
     }
 
     private boolean checkValidName(String nameInput, boolean newUser) throws SQLException {
@@ -137,7 +143,8 @@ public class LoginMenu {
         }
     }
     private void getLoginMenuOptions(){
-        this.loginMenuOptions = new MenuOptions(List.of("1", "2", "x"),
+        MenuOptions menuOptions = new MenuOptions();
+        this.options = menuOptions.createMenu (List.of("1", "2", "x"),
                 List.of(() -> getLoginInput("--Submit username and password:\n", false),
                         ()-> getLoginInput("--Creating a new account:\n", true),
                         () -> {

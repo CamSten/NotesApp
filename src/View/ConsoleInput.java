@@ -60,8 +60,11 @@ public class ConsoleInput {
         return notes.stream().anyMatch(note -> note.getId() == noteIdInput);
     }
     public int getNoteIdFromList(int userInput, List<Note> notes){
-        return (userInput-1 < notes.size()) ? notes.get(userInput-1).getId() : -1;
+        if (userInput == -1){
+            return userInput;
         }
+        return (userInput-1 < notes.size()) ? notes.get(userInput-1).getId() : -1;
+    }
 
     public List<User> getUsersFromEvent(Event event){
         if (event.getData() instanceof List list && !list.isEmpty() && list.getFirst() instanceof User) {

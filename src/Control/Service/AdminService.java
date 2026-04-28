@@ -106,16 +106,11 @@ public class AdminService {
         List<String> inputValues = List.of(SEE_USERS.toString(), SEE_ALL_NOTES.toString(), SEE_NOTES.toString(), DELETE_USER_NOTES.toString(),
                 DELETE_NOTE.toString(), DELETE_ALL_NOTES.toString(), SEE_ALL_LOGIN_LOGS.toString(),
                 SEE_LOGIN_FOR_STATUS.toString(), SEE_LOGIN_FOR_USER.toString(), SEE_ALL_NOTE_LOGS.toString(), SEE_USER_NOTE_LOGS.toString());
-        MenuOptions options = getOptions((List.of(this::retrieveUsers, () -> retrieveNotes(action, input), () -> retrieveNotes(action, input),
+        MenuOptions menuOptions = new MenuOptions();
+        return menuOptions.createMenuVoid(inputValues, (List.of(this::retrieveUsers, () -> retrieveNotes(action, input), () -> retrieveNotes(action, input),
                 () -> am.removeNote(input, user.getId(), true, false), () -> am.removeNote(input, user.getId(), false, false),
                 () -> am.removeNote(input, user.getId(), false, true), () -> getLogPosts(-1, null),
                 () -> getLogPosts(-1, LoginStatus.getStatus(input)),
-                () -> getLogPosts(input, null), () -> getNoteLogs(-1), () -> getNoteLogs(input))), inputValues);
-        return options.createMenuVoid();
-    }
-    private MenuOptions getOptions(List<SQLRunnableVoid> toPerform, List<String> inputValues) {
-        MenuOptions menuOptions = new MenuOptions();
-        menuOptions.getMenuOptions(inputValues, toPerform);
-        return menuOptions;
+                () -> getLogPosts(input, null), () -> getNoteLogs(-1), () -> getNoteLogs(input))));
     }
 }
