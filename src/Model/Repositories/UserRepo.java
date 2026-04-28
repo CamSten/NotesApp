@@ -5,8 +5,6 @@ import Model.DataObjects.User;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
-
-
 import static Model.DataObjects.User.Role.USER;
 
 public class UserRepo {

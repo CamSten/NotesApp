@@ -1,9 +1,7 @@
 package Control.Service;
 
 import Control.Enums.Prompts;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class InputValidator {
     public enum InputType {USERNAME, PASSWORD, NOTE, NOTE_TITLE, NOTE_TEXT}
@@ -34,11 +32,11 @@ public class InputValidator {
         };
     }
     public Prompts checkTooLong(String userinput, InputType inputType){
-     return switch (inputType){
+        return switch (inputType){
             case USERNAME -> userinput.length() > 15 ? Prompts.LONG_NAME : Prompts.OK;
             case PASSWORD -> userinput.length() > 30 ? Prompts.LONG_PASS : Prompts.OK;
-            case NOTE_TITLE -> userinput.length() > 75 ? Prompts.SHORT_NAME : Prompts.OK;
-            case NOTE_TEXT ->  userinput.length() > 500 ? Prompts.SHORT_NAME : Prompts.OK;
+            case NOTE_TITLE -> userinput.length() > 75 ? Prompts.LONG_TITLE : Prompts.OK;
+            case NOTE_TEXT ->  userinput.length() > 500 ? Prompts.LONG_TEXT : Prompts.OK;
             default -> Prompts.ERROR;
         };
     }

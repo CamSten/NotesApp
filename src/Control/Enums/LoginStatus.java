@@ -10,10 +10,6 @@ public enum LoginStatus{
     LoginStatus(int input){
         status = input;
     }
-    public int toInt() {
-        return status;
-    }
-
     public static LoginStatus getStatus(int input){
         if (input == 1){
             return SUCCESS;

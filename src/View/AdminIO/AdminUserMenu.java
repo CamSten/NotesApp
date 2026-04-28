@@ -1,11 +1,9 @@
 package View.AdminIO;
 
 import Control.Enums.AdminAction;
-import Control.AppManager;
-import Control.Event;
+import Control.*;
 import Model.DataObjects.User;
-import View.ConsoleInput;
-import View.ConsoleOutput;
+import View.*;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -26,6 +24,7 @@ public class AdminUserMenu {
             System.out.println(event.getPrompts());
             return;
         }
+        co.printHeader("Users");
         List<User> users = ci.getUsersFromEvent(event);
         if (users.isEmpty()) {
             System.out.println(noUsers);
@@ -70,8 +69,8 @@ public class AdminUserMenu {
             }
         }
     }
-    private final String userSubmenuPrompt = "Would you like to:\n- 1: See notes \n- 2: See log in history\n";
-    private final String noUsers = "No users have been registered.";
-    private final String userNumberPrompt = "Enter the number of a user in order to view their notes or their log in history\n";
-    private final String usersInfo = "The following users are currently registered:\n";
+    private final String userSubmenuPrompt = "-- Would you like to:\n- 1: See notes \n- 2: See log in history\n";
+    private final String noUsers = "-- No users have been registered.";
+    private final String userNumberPrompt = "-- Enter the number of a user in order to view their notes or their log in history\n";
+    private final String usersInfo = "-- The following users are currently registered:\n";
 }

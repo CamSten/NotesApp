@@ -1,9 +1,7 @@
 package Model.Repositories;
 
 import Control.Enums.LoginStatus;
-import Model.DataObjects.LogPost;
-import Model.DataObjects.NoteLog;
-
+import Model.DataObjects.*;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;

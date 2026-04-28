@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Note {
-    private int id;
+    private final int id;
     private String username;
     private String title;
     private String contents;
-    private LocalDateTime submitDate;
+    private final LocalDateTime submitDate;
     private LocalDateTime lastEditDate;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 

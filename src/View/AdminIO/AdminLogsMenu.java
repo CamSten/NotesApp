@@ -22,6 +22,7 @@ public class AdminLogsMenu {
 
     public void seeLogins() throws SQLException {
         while (true) {
+            co.printHeader("Log in history");
             System.out.println(logMenuPrompt + am.returnToMain +  am.submit);
             String choice = ci.lowCaseInput();
             if (ci.checkIfQuit(choice)){
@@ -70,11 +71,11 @@ public class AdminLogsMenu {
     }
 
     public void showLogPosts(List<LogPost> logPosts){
-        System.out.println("List of login posts:\n");
+        co.printHeader("List of login posts:");
         for (LogPost log : logPosts){
             System.out.println(co.getLogPostString(log));
         }
     }
-    private final String logMenuPrompt = "Would you like to:\n- 1: See all log in history\n- 2: See log in history for a specific user\n- 3: See log in with specific status\n";
-    private final String loginStatusPrompt = "Which log in status would you like to get the history for?\n- 1: Success\n- 2: Fail\n- 3: Unknown user\n";
+    private final String logMenuPrompt = "-- Would you like to:\n- 1: See all log in history\n- 2: See log in history for a specific user\n- 3: See log in with specific status\n";
+    private final String loginStatusPrompt = "-- Which log in status would you like to get the history for?\n- 1: Success\n- 2: Fail\n- 3: Unknown user\n";
 }

@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class NoteLog {
-    private LocalDateTime date;
-    private int actorUserId;
-    private int noteId;
+    private final LocalDateTime date;
+    private final int actorUserId;
+    private final int noteId;
     private NoteAction noteAction;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 

@@ -1,19 +1,11 @@
 package Model;
 
 import Control.Enums.LoginStatus;
-import Model.DataObjects.LogPost;
-import Model.DataObjects.Note;
-import Model.DataObjects.NoteLog;
-import Model.DataObjects.User;
+import Model.DataObjects.*;
 import Model.Properties.PropertyRetriever;
-import Model.Repositories.AdminRepo;
-import Model.Repositories.NoteRepo;
-import Model.Repositories.UserRepo;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import Model.Repositories.*;
+import java.sql.*;
 import java.util.List;
-
 
 public class DatabaseRelay {
     private static Connection c;

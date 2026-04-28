@@ -1,20 +1,27 @@
 package View;
 
-import Control.Enums.Prompts;
 import Model.DataObjects.LogPost;
 import Model.DataObjects.Note;
 import Model.DataObjects.NoteLog;
 import Model.DataObjects.User;
 
 public class ConsoleOutput {
+
+    public void printHeader(String headerText){
+        StringBuilder header = new StringBuilder();
+        header.append("\n=== ");
+        header.append(headerText);
+        header.append(" ===\n");
+        System.out.println(header);
+    }
     public String getUserPostString(User u, boolean allInfo){
         StringBuilder post = new StringBuilder();
         if (!allInfo){
             post.append("User nr.");
             post.append(u.getId());
-            post.append(":\nUsername: ");
+            post.append(":\n  Username: ");
             post.append(u.getUsername());
-            post.append("\nDate of registration: ");
+            post.append("\n  Date of registration: ");
             post.append(u.getRegDate());
             post.append("\n");
         }
@@ -25,9 +32,9 @@ public class ConsoleOutput {
         StringBuilder post = new StringBuilder();
         post.append("Date of action: ");
         post.append(log.getDate());
-        post.append("\nAction performed by user with id: ");
+        post.append("\n  Action performed by user with id: ");
         post.append(log.getUserId());
-        post.append("\nStatus: ");
+        post.append("\n  Status: ");
         post.append(log.getLoginStatus());
         post.append("\n");
         return post.toString();
@@ -37,11 +44,11 @@ public class ConsoleOutput {
         StringBuilder post = new StringBuilder();
         post.append("Action performed by user with id: ");
         post.append(log.getActorUserId());
-        post.append("\nDate of action: ");
+        post.append("\n  Date of action: ");
         post.append(log.getDate());
-        post.append("\nNote id:");
+        post.append("\n  Note id:");
         post.append(log.getNoteId());
-        post.append("\nAction: ");
+        post.append("\n  Action: ");
         post.append(log.getNoteAction());
         post.append("\n");
         return post.toString();
@@ -56,22 +63,22 @@ public class ConsoleOutput {
             post.append(":");
         }
         if (allNotes) {
-            post.append("User: ");
+            post.append("  User: ");
             post.append(n.getUsername());
         }
-        post.append("\nDate: ");
+        post.append("\n  Date: ");
         post.append(n.getSubmitDate());
-        post.append("\nTitle: ");
+        post.append("\n  Title: ");
         post.append(n.getTitle());
         if (allInfo) {
-            post.append("\nContents: ");
+            post.append("\n  Contents: ");
             post.append(n.getContents());
         }
         post.append("\n");
         return post.toString();
     }
-    public void prompt(Prompts prompt) {
-        System.out.println(prompt.toString());
+    public void prompt(String prompt) {
+        System.out.println("\n" +prompt);
     }
 
     public void promptInvalid(){

@@ -1,17 +1,12 @@
 package Control.Service;
 
 import Control.AppManager;
-import Control.Enums.NoteAction;
-import Control.Enums.Prompts;
+import Control.Enums.*;
 import Model.DatabaseRelay;
-import Model.DataObjects.Note;
-import Model.DataObjects.User;
-import View.UserIO.MenuOptions;
-import View.UserIO.SQLRunnable;
-import View.UserIO.UserMenu;
+import Model.DataObjects.*;
+import View.UserIO.*;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class UserService {
     private AppManager am;
@@ -30,8 +25,8 @@ public class UserService {
         this.userMenu = userMenu;
     }
     public void handleUserAction(NoteAction userAction, Note note) throws SQLException {
-        Map<String, SQLRunnable> menu = getUserActionOptions(note);
-        SQLRunnable runAction = menu.get(userAction.toString());
+        Map<String, SQLRunnableVoid> menu =  getUserActionOptions(note);
+        SQLRunnableVoid runAction = menu.get(userAction.toString());
         if (runAction == null){
             replyToUser(Prompts.ERROR);
             return;
@@ -58,14 +53,12 @@ public class UserService {
         return passwordService.validatePassword(userInput, databaseRelay.getPasswordHash(user.getUsername()));
     }
 
-    Map<String, SQLRunnable> getUserActionOptions (Note note){
+    private Map<String, SQLRunnableVoid> getUserActionOptions (Note note){
         List<String> input = List.of(NoteAction.ADD.toString(), NoteAction.READ.toString(), NoteAction.EDIT.toString(), NoteAction.REMOVE.toString(), NoteAction.REMOVE_ALL.toString());
-        MenuOptions options = getOptions(List.of(() -> addNote(note), () -> readNotes(false), () -> editNote(note), () -> am.removeNote(note.getId(), user.getId(), false, false), () -> am.removeNote(-1, user.getId(), true, false)), input);
-        return options.createMenu();
+        MenuOptions options = new MenuOptions();
+        return options.getMenuOptions(input, List.of(() -> addNote(note), () -> readNotes(false), () -> editNote(note), () -> am.removeNote(note.getId(), user.getId(), false, false), () ->  am.removeNote(-1, user.getId(), true, false)));
     }
-    private MenuOptions getOptions(List<SQLRunnable> toPerform, List<String> inputValues) {
-        return new MenuOptions(inputValues, toPerform);
-    }
+
     public void replyToUser(Prompts prompts) {
         if (prompts != Prompts.OK) {
             userMenu.displayReply(prompts);

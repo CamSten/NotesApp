@@ -1,13 +1,14 @@
 package View.UserIO;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MenuOptions {
-    Map<String, SQLRunnable> menuOptions;
-    private final List<String> keys;
-    private final List<SQLRunnable> toPerform;
+    private Map<String, SQLRunnable> menuOptions;
+    private Map<String, SQLRunnableVoid> menuOptionsVoid;
+    private List<String> keys;
+    private List<String> keysVoid;
+    private List<SQLRunnable> toPerform;
+    private List<SQLRunnableVoid> toPerformVoid;
 
     public MenuOptions(List<String> input, List<SQLRunnable> toPerform) {
         this.keys = input;
@@ -15,6 +16,17 @@ public class MenuOptions {
         if(keys.size() != toPerform.size()){
             throw new IllegalArgumentException("Keys and actions must match");
         }
+    }
+    public MenuOptions() {
+
+    }
+    public Map<String, SQLRunnableVoid> getMenuOptions(List<String> input, List<SQLRunnableVoid> toPerformVoid){
+        this.keysVoid = input;
+        this.toPerformVoid = toPerformVoid;
+        if(keysVoid.size() != toPerformVoid.size()){
+            throw new IllegalArgumentException("Keys and actions must match");
+        }
+        return createMenuVoid();
     }
 
     public Map<String, SQLRunnable> createMenu() {
@@ -24,5 +36,13 @@ public class MenuOptions {
             menuOptions.put(keys.get(i), action);
         }
         return menuOptions;
+    }
+    public Map<String, SQLRunnableVoid> createMenuVoid(){
+        this.menuOptionsVoid = new HashMap<>();
+        for (int i = 0; i < keysVoid.size(); i++) {
+            SQLRunnableVoid action = toPerformVoid.get(i);
+            menuOptionsVoid.put(keysVoid.get(i), action);
+        }
+        return menuOptionsVoid;
     }
 }

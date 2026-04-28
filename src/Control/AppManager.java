@@ -1,27 +1,16 @@
 package Control;
 
-import Control.Enums.AdminAction;
-import Control.Enums.LoginStatus;
-import Control.Enums.NoteAction;
-import Control.Enums.Prompts;
-import Control.Service.AdminService;
-import Control.Service.InputValidator;
-import Control.Service.PasswordService;
+import Control.Enums.*;
+import Control.Service.*;
 import Control.Service.UserService;
 import Model.*;
-import Model.DataObjects.Note;
-import Model.DataObjects.User;
+import Model.DataObjects.*;
 import View.AdminIO.AdminMenu;
-import View.ConsoleInput;
-import View.ConsoleOutput;
-import View.LoginMenu;
 import View.UserIO.UserMenu;
-
-import java.nio.file.LinkPermission;
+import View.*;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class AppManager {
     private final Scanner scan;
@@ -72,8 +61,9 @@ public class AppManager {
         this.userService = new UserService(this, user, passwordService, iv, databaseRelay, userMenu);
         loginMenu.setUser(user);
     }
-    public void handleLogOut() throws SQLException {
+    public boolean handleLogOut() throws SQLException {
         showLoginMenu();
+        return true;
     }
     public Prompts validateLogin(String username, String passwordInput) throws SQLException {
         if (databaseRelay.checkAvailability(username)) {
@@ -85,6 +75,10 @@ public class AppManager {
         }
         setUser(username, passwordHash);
         return Prompts.OK;
+    }
+
+    public boolean checkAvailability (String username) throws SQLException {
+        return databaseRelay.checkAvailability(username);
     }
 
     public Prompts validate(String username, String passwordInput, boolean newAccount) throws SQLException {
@@ -133,29 +127,35 @@ public class AppManager {
         return Prompts.NEW_PASS_OK;
     }
 
-
-    private void replyToUser(Prompts reply){
+    private void replyToUser(AdminAction action, Prompts reply){
         if(user.getRole() == User.Role.ADMIN){
-            adminService.relayReply(reply);
+            adminService.relayReply(action, reply);
         }
         else{
             userService.replyToUser(reply);
         }
     }
     public void removeNote(int noteId, int userId, boolean allUserNotes, boolean allNotes) throws SQLException {
+        AdminAction response = allUserNotes ? AdminAction.DELETE_USER_NOTES : AdminAction.DELETE_NOTE;
         if (allNotes) {
+            System.out.println("in removeNote, allNotes is true");
             if (user.isVerified()) {
                 adminService.resetAdminVerification();
-                adminService.relayReply(databaseRelay.removeAllNotes() ? Prompts.OK : Prompts.ERROR);
+                adminService.relayReply(AdminAction.DELETE_ALL_NOTES, databaseRelay.removeAllNotes() ? Prompts.OK : Prompts.ERROR);
                 return;
             }
         }
-        boolean validAction = (user.getRole() == User.Role.ADMIN) ? adminService.verifyAdminPassword() : userService.verifyUserPassword();
+        boolean validAction = (user.getRole() == User.Role.ADMIN) ? user.isVerified() : userService.verifyUserPassword();
         if (validAction){
             adminService.resetAdminVerification();
-            replyToUser(databaseRelay.removeNotesForUser(userId, noteId, allUserNotes) ? Prompts.OK : Prompts.NO_SUCH_NOTE);
+            if (user.getRole() != User.Role.ADMIN) {
+                replyToUser(null, databaseRelay.removeNotesForUser(userId, noteId, allUserNotes) ? Prompts.OK : Prompts.NO_SUCH_NOTE);
+            }
+            else {
+                adminService.relayReply(response, databaseRelay.removeNotesForUser(userId, noteId, allUserNotes) ? Prompts.OK : Prompts.NO_SUCH_NOTE);
+            }
             return;
         }
-        replyToUser(Prompts.WRONG_PASS);
+        replyToUser(response, Prompts.WRONG_PASS);
     }
 }

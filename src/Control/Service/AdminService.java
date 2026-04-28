@@ -1,28 +1,21 @@
 package Control.Service;
 
 import Control.*;
-import Control.Enums.AdminAction;
-import Control.Enums.LoginStatus;
-import Control.Enums.Prompts;
+import Control.Enums.*;
 import Model.DatabaseRelay;
-import Model.DataObjects.LogPost;
-import Model.DataObjects.NoteLog;
-import Model.DataObjects.User;
+import Model.DataObjects.*;
 import View.AdminIO.AdminMenu;
-import View.UserIO.MenuOptions;
-import View.UserIO.SQLRunnable;
+import View.UserIO.*;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import static Control.Enums.AdminAction.*;
 
 public class AdminService {
-    private AppManager am;
-    private DatabaseRelay databaseRelay;
-    private AdminMenu adminMenu;
-    private PasswordService passwordService;
-    private User user;
+    private final AppManager am;
+    private final DatabaseRelay databaseRelay;
+    private final AdminMenu adminMenu;
+    private final PasswordService passwordService;
+    private final User user;
 
     public AdminService(AppManager am, DatabaseRelay databaseRelay, AdminMenu adminMenu, PasswordService passwordService, User user){
         this.am = am;
@@ -33,13 +26,14 @@ public class AdminService {
     }
     public void handleAdminAction(AdminAction action, int input) throws SQLException {
         if (!confirmAdmin()){
-            adminMenu.printResponse(Prompts.WRONG_PASS);
+            adminMenu.printResponse(action, Prompts.WRONG_PASS);
             return;
         }
-        Map<String, SQLRunnable> menu = getAdminActionOptions(action, input);
-        SQLRunnable runAction = menu.get(action.toString());
+        user.setVerified(true);
+        Map<String, SQLRunnableVoid> menu = getAdminActionOptions(action, input);
+        SQLRunnableVoid runAction = menu.get(action.toString());
         if (runAction == null){
-            adminMenu.printResponse(Prompts.ERROR);
+            adminMenu.printResponse(action, Prompts.ERROR);
             return;
         }
         runAction.run();
@@ -49,18 +43,21 @@ public class AdminService {
         adminMenu.displayUsers(new Event(databaseRelay.getUsers(), Prompts.OK));
     }
     public void retrieveNotes(AdminAction action, int userId) throws SQLException {
-        boolean allNotes = action != AdminAction.SEE_NOTES;
+        boolean allNotes = (action == SEE_ALL_NOTES);
         resetAdminVerification();
         adminMenu.displayNotes(databaseRelay.getNotes(userId, allNotes), allNotes, true);
     }
 
     public void getLogPosts(int input, LoginStatus status) throws SQLException {
         List<LogPost> logPosts;
-        if (input!=-1){
+        if (status!= null){
+            logPosts = databaseRelay.getLogPostForStatus(status);
+        }
+        else if (input!=-1){
             logPosts = databaseRelay.getLogPostForUser(input);
         }
         else {
-            logPosts = (status!= null) ? databaseRelay.getLogPostForStatus(status) : databaseRelay.getLogPosts();
+            logPosts = databaseRelay.getLogPosts();
         }
         resetAdminVerification();
         adminMenu.showLogPosts(logPosts);
@@ -79,7 +76,6 @@ public class AdminService {
             verified = true;
             if (!user.isVerified()) {
                 verified = verifyAdminPassword();
-                resetAdminVerification();
             }
         }
         return verified;
@@ -90,7 +86,7 @@ public class AdminService {
         }
     }
     public int getUserIdForAdminUse(String username) throws SQLException {
-        return (confirmAdmin()) ? databaseRelay.getUserIdForAdminUse(username) : -1;
+        return databaseRelay.getUserIdForAdminUse(username);
     }
     public boolean verifyAdminPassword() throws SQLException {
         String passwordHash = databaseRelay.getPasswordHash(user.getUsername());
@@ -103,21 +99,23 @@ public class AdminService {
         }
         return verified;
     }
-    public void relayReply(Prompts prompts){
-        adminMenu.printResponse(prompts);
+    public void relayReply(AdminAction action, Prompts prompts){
+        adminMenu.printResponse(action, prompts);
     }
-    Map<String, SQLRunnable> getAdminActionOptions(AdminAction action, int input){
+    public Map<String, SQLRunnableVoid> getAdminActionOptions(AdminAction action, int input){
         List<String> inputValues = List.of(SEE_USERS.toString(), SEE_ALL_NOTES.toString(), SEE_NOTES.toString(), DELETE_USER_NOTES.toString(),
-                DELETE_NOTE.toString(), DELETE_NOTE.toString(), DELETE_ALL_NOTES.toString(), SEE_ALL_LOGIN_LOGS.toString(),
+                DELETE_NOTE.toString(), DELETE_ALL_NOTES.toString(), SEE_ALL_LOGIN_LOGS.toString(),
                 SEE_LOGIN_FOR_STATUS.toString(), SEE_LOGIN_FOR_USER.toString(), SEE_ALL_NOTE_LOGS.toString(), SEE_USER_NOTE_LOGS.toString());
-        MenuOptions options = getOptions(List.of(this::retrieveUsers, () -> retrieveNotes(action, input), () -> retrieveNotes(action, input),
+        MenuOptions options = getOptions((List.of(this::retrieveUsers, () -> retrieveNotes(action, input), () -> retrieveNotes(action, input),
                 () -> am.removeNote(input, user.getId(), true, false), () -> am.removeNote(input, user.getId(), false, false),
                 () -> am.removeNote(input, user.getId(), false, true), () -> getLogPosts(-1, null),
                 () -> getLogPosts(-1, LoginStatus.getStatus(input)),
-                () -> getLogPosts(input, null), () -> getNoteLogs(-1), () -> getNoteLogs(-1)), inputValues);
-        return options.createMenu();
+                () -> getLogPosts(input, null), () -> getNoteLogs(-1), () -> getNoteLogs(input))), inputValues);
+        return options.createMenuVoid();
     }
-    private MenuOptions getOptions(List<SQLRunnable> toPerform, List<String> inputValues) {
-        return new MenuOptions(inputValues, toPerform);
+    private MenuOptions getOptions(List<SQLRunnableVoid> toPerform, List<String> inputValues) {
+        MenuOptions menuOptions = new MenuOptions();
+        menuOptions.getMenuOptions(inputValues, toPerform);
+        return menuOptions;
     }
 }

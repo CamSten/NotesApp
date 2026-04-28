@@ -12,4 +12,3 @@ public enum AdminAction {
     SEE_LOGIN_FOR_STATUS,
     SEE_LOGIN_FOR_USER,
     SEE_USER_NOTE_LOGS}
-

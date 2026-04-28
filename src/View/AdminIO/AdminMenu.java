@@ -43,6 +43,7 @@ public class AdminMenu {
     public void showAdminMenu() throws SQLException {
         boolean loggedIn = true;
         while (loggedIn) {
+            co.printHeader("Main Menu");
             System.out.println(mainMenuPrompt + submit);
             String choice = ci.lowCaseInput();
             switch (choice) {
@@ -58,8 +59,16 @@ public class AdminMenu {
         }
     }
 
-    public void printResponse(Prompts prompts) {
-        co.prompt(prompts);
+    public void printResponse(AdminAction action, Prompts prompts) {
+        String reply = prompts.toString();
+        if (prompts == Prompts.OK){
+            switch (action){
+                case DELETE_ALL_NOTES -> reply = "All notes have been deleted.";
+                case DELETE_USER_NOTES -> reply = "All notes for this user have been deleted.";
+                case DELETE_NOTE -> reply = "The note has been deleted.";
+            }
+        }
+        co.prompt(reply);
     }
 
     public String promptVerify() {
@@ -70,9 +79,9 @@ public class AdminMenu {
         System.out.println(threeFailedAttempts);
         appManager.handleLogOut();
     }
-    private final String mainMenuPrompt = "What would you like to do?\n- 1: View notes\n- 2: View users\n- 3: View log ins\n- 4: Log out\n";
-    public final String submit = "Submit your choice:\n";
-    public final String userNamePrompt = "Enter the username to view their ";
-    public final String returnToMain = "Press 'X' to return to the main menu.\n";
-    private final String threeFailedAttempts = "You have submitted an incorrect password three times, you will therefore be logged out.\n";
+    private final String mainMenuPrompt = "-- What would you like to do?\n- 1: View notes\n- 2: View users\n- 3: View log ins\n- 4: Log out\n";
+    public final String submit = "-- Submit your choice:\n";
+    public final String userNamePrompt = "-- Enter a username to view their ";
+    public final String returnToMain = "-- Press 'X' to return to the main menu.\n";
+    private final String threeFailedAttempts = "-- You have submitted an incorrect password three times, you will therefore be logged out.\n";
 }
